@@ -81,7 +81,6 @@
         </div>
     </div>
 </div>
-
 <div class="modal" id="info-modal" style="display: block;">
     <div class="modal-content" style="text-align:left;">
         <p style="text-align:center; font-size:1.2rem; margin-bottom:10px;">🍕 🥯 🍩</p>
@@ -110,14 +109,14 @@
 
 <div class="modal" id="stats-modal">
     <div class="modal-content">
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Your Statistics</h2>
         <div class="stats-grid">
             <div><span class="stat-val" id="s-played">0</span><span class="stat-lbl">Played</span></div>
             <div><span class="stat-val" id="s-unboxed">0</span><span class="stat-lbl">Wins</span></div>
             <div><span class="stat-val" id="s-avg">0</span><span class="stat-lbl">Avg Row</span></div>
         </div>
         <div class="dist-container">
-            <h3 style="font-size:0.7rem; text-transform:uppercase; margin-bottom:10px; color:var(--sauce)">Global Distribution</h3>
+            <h3 style="font-size:0.7rem; text-transform:uppercase; margin-bottom:10px; color:var(--sauce)">Lifetime Global Distribution</h3>
             <div id="dist-chart">Loading order history...</div>
         </div>
         <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:20px; cursor:pointer;">Close</button>
@@ -140,6 +139,7 @@
     
     const CODE = generateDailyCode();
     let currentInput = "", tries = 0;
+    // Local storage keeps track of your personal streak and today's state
     let localStats = JSON.parse(localStorage.getItem('pbd_v8')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
     window.onload = () => { if (localStats.lastDate === today) toggleModal('info-modal', false); };
@@ -185,13 +185,19 @@
         currentInput = ""; updateDisplay();
     }
 
+    // UPDATED: Global stats now fetch existing totals and add the new win
     async function updateGlobalStats(rowNum) {
         try {
             const res = await fetch(FIREBASE_URL);
             const data = await res.json() || { dist: [0,0,0,0,0,0] };
             if(!data.dist) data.dist = [0,0,0,0,0,0];
-            data.dist[rowNum - 1]++;
-            await fetch(FIREBASE_URL, { method: 'PATCH', body: JSON.stringify({ dist: data.dist }) });
+            
+            data.dist[rowNum - 1]++; // Add to the historical record
+            
+            await fetch(FIREBASE_URL, { 
+                method: 'PATCH', 
+                body: JSON.stringify({ dist: data.dist }) 
+            });
         } catch (e) { console.error(e); }
     }
 
@@ -206,7 +212,7 @@
     function renderRow(g, e) {
         const row = document.createElement('div'); row.className = 'guess-row';
         if (e === "🍕🍕🍕") row.className += ' winner';
-        row.innerHTML = '<div class="guess-code">' + g + '</div><div class="guess-emojis">' + e + '</div>';
+        row.innerHTML = `<div class="guess-code">${g}</div><div class="guess-emojis">${e}</div>`;
         const log = document.getElementById('guess-log');
         log.appendChild(row);
         log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
@@ -229,6 +235,7 @@
             document.getElementById('s-played').innerText = localStats.played;
             document.getElementById('s-unboxed').innerText = localStats.wins;
             document.getElementById('s-avg').innerText = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
+            
             const globalDist = await fetchGlobalStats();
             const chart = document.getElementById('dist-chart');
             chart.innerHTML = "";
