@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🍕 Pizza Bagel Donut 🥯</title>
+    <title>Pizza Bagel Donut</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
         :root { --crust: #f1d5a7; --sauce: #d32f2f; --cheese: #ffeb3b; --dough: #ffffff; }
@@ -11,7 +11,10 @@
         
         .game-container { background: var(--dough); padding: 30px; border-radius: 20px; border: 6px solid var(--sauce); box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 400px; width: 100%; text-align: center; }
         
-        h1 { margin: 0 0 10px 0; font-size: 1.8rem; letter-spacing: -1px; color: var(--sauce); }
+        /* The New Emoji Header Style */
+        .icon-header { font-size: 3.5rem; line-height: 1; margin-bottom: 5px; }
+        h1 { margin: 0 0 15px 0; font-size: 1.8rem; letter-spacing: -1px; color: var(--sauce); text-transform: uppercase; }
+        
         .player-badge { font-size: 0.8rem; background: #eee; padding: 5px 12px; border-radius: 15px; display: inline-block; margin-bottom: 20px; color: #666; font-weight: bold; }
         
         .scoreboard { background: #2d2d2d; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
@@ -38,7 +41,9 @@
 <body>
 
 <div class="game-container">
-    <h1>🍕 PIZZA BAGEL DONUT 🥯</h1>
+    <div class="icon-header">🍕 🥯 🍩</div>
+    <h1>Pizza Bagel Donut</h1>
+    
     <div id="player-tag" class="player-badge">Loading Kitchen...</div>
 
     <div class="scoreboard">
@@ -144,23 +149,4 @@
         if (val === CODE) {
             row.innerHTML = `[${tries}] ${val} → <span class="win-splash">🍕 PIZZA PIZZA PIZZA!</span>`;
             log.prepend(row);
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#d32f2f', '#ffeb3b', '#ffffff'] });
-            finish(true);
-        } else {
-            guessArr.forEach((num, i) => {
-                if (num === codeArr[i]) { p++; } 
-                else if (codeArr.includes(num)) { b++; } 
-                else { d++; }
-            });
-            let resultEmojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
-            row.innerHTML = `[${tries}] ${val} → <span class="emoji-count">${resultEmojis}</span>`;
-            log.prepend(row);
-            if (tries >= MAX_TRIES) finish(false);
-        }
-        input.value = "";
-    }
-
-    function finish(isWin) {
-        if (stats.lastDate !== today) {
-            stats.games++;
-            if (isWin) { stats.hits++; send
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['
