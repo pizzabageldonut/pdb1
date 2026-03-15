@@ -3,161 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Triple Play: Pizza, Bagel, Donut 🍕</title>
+    <title>Pizza Bagel Donut: The Daily Logic Challenge 🍕</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --crust: #e2b07e; --sauce: #b22222; --dough: #f4f4f4; --box: #fff; }
-        body { font-family: 'Arial Black', sans-serif; background: var(--crust); display: flex; flex-direction: column; align-items: center; padding: 20px; color: #333; }
-        .stadium { background: var(--box); padding: 25px; border-radius: 15px; border: 5px solid var(--sauce); box-shadow: 0 10px 30px rgba(0,0,0,0.3); max-width: 400px; width: 100%; text-align: center; }
-        .scoreboard { background: #333; color: #fff; padding: 10px; font-family: 'Courier New', monospace; border-radius: 8px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; border: 2px solid #000; }
-        .stat-label { font-size: 0.7rem; color: #ccc; display: block; }
-        .player-tag { font-size: 0.8rem; color: #fff; background: var(--sauce); padding: 4px 12px; border-radius: 20px; margin-bottom: 10px; display: inline-block; }
-        input { width: 140px; font-size: 2.5rem; text-align: center; border: 3px solid #333; border-radius: 10px; margin-bottom: 15px; letter-spacing: 5px; font-weight: bold; }
-        button { width: 100%; padding: 15px; background: var(--sauce); color: white; border: none; border-radius: 8px; font-size: 1.1rem; cursor: pointer; font-weight: bold; text-transform: uppercase; }
-        .log { margin-top: 20px; text-align: left; background: #fffdf0; padding: 12px; border-radius: 8px; height: 180px; overflow-y: auto; font-family: 'Courier New', monospace; font-size: 0.9rem; border: 1px solid #ddd; }
-        .pizza { color: #28a745; font-weight: bold; }
-        .bagel { color: #d4a017; font-weight: bold; }
-        .donut { color: #999; font-weight: bold; }
-        .win-text { color: #28a745; font-weight: bold; animation: blink 0.5s infinite; }
-        @keyframes blink { 50% { opacity: 0; } }
+        :root { --crust: #f1d5a7; --sauce: #d32f2f; --cheese: #ffeb3b; --dough: #ffffff; }
+        body { font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; background: var(--crust); display: flex; flex-direction: column; align-items: center; padding: 20px; color: #2d2d2d; margin: 0; }
+        
+        .game-container { background: var(--dough); padding: 30px; border-radius: 20px; border: 6px solid var(--sauce); box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 400px; width: 100%; text-align: center; }
+        
+        h1 { margin: 0 0 10px 0; font-size: 1.8rem; letter-spacing: -1px; color: var(--sauce); }
+        .player-badge { font-size: 0.8rem; background: #eee; padding: 5px 12px; border-radius: 15px; display: inline-block; margin-bottom: 20px; color: #666; font-weight: bold; }
+        
+        .rules-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px; font-size: 0.75rem; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 0; }
+        .rule { font-weight: bold; }
+        .p-text { color: #2e7d32; } .b-text { color: #f57c00; } .d-text { color: #757575; }
+
+        .scoreboard { background: #2d2d2d; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
+        .stat-label { font-size: 0.65rem; color: #aaa; text-transform: uppercase; display: block; }
+        .stat-val { font-size: 1.3rem; font-weight: bold; }
+
+        input { width: 150px; font-size: 2.5rem; text-align: center; border: 3px solid #ddd; border-radius: 12px; margin-bottom: 15px; padding: 5px; outline-color: var(--sauce); }
+        button { width: 100%; padding: 16px; background: var(--sauce); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        button:hover { background: #b71c1c; transform: translateY(-2px); }
+        
+        .log { margin-top: 25px; text-align: left; background: #fafafa; padding: 15px; border-radius: 10px; height: 200px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; border: 1px solid #eee; }
+        .p-result { color: #2e7d32; font-weight: bold; }
+        .b-result { color: #f57c00; font-weight: bold; }
+        .d-result { color: #9e9e9e; font-weight: bold; }
+        .win-splash { color: #2e7d32; font-weight: 900; animation: bounce 0.5s infinite; }
+        
+        footer { margin-top: 30px; font-size: 0.7rem; color: #8d6e63; text-align: center; opacity: 0.8; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
     </style>
 </head>
 <body>
 
-<div class="stadium">
-    <h1 style="margin: 0 0 5px 0;">🍕 TRIPLE PLAY</h1>
-    <div id="player-display" class="player-tag">Guest Player</div>
-    
-    <div style="font-size: 0.75rem; color: #555; margin-bottom: 15px; line-height: 1.4;">
-        <strong>Pizza:</strong> Correct spot 🍕<br>
-        <strong>Bagel:</strong> Correct number, wrong spot 🥯<br>
-        <strong>Donut:</strong> Not in the code 🍩
+<div class="game-container">
+    <h1>🍕 PIZZA BAGEL DONUT</h1>
+    <div id="player-tag" class="player-badge">Loading Profile...</div>
+
+    <div class="rules-bar">
+        <div class="rule p-text">🍕 PIZZA<br><small>Right Spot</small></div>
+        <div class="rule b-text">🥯 BAGEL<br><small>Wrong Spot</small></div>
+        <div class="rule d-text">🍩 DONUT<br><small>Not in Code</small></div>
     </div>
 
     <div class="scoreboard">
-        <div><span class="stat-label">DAILY AVG</span><span class="stat-val" id="stat-avg">.000</span></div>
-        <div><span class="stat-label">GAMES</span><span class="stat-val" id="stat-gp">0</span></div>
+        <div><span class="stat-label">Season AVG</span><span class="stat-val" id="stat-avg">.000</span></div>
+        <div><span class="stat-label">Games Played</span><span class="stat-val" id="stat-gp">0</span></div>
     </div>
 
-    <div id="game-ui">
-        <input type="text" id="guess" maxlength="3" placeholder="000" inputmode="numeric">
-        <button onclick="makeGuess()">Submit Order</button>
+    <div id="input-area">
+        <input type="text" id="user-guess" maxlength="3" placeholder="000" inputmode="numeric">
+        <button onclick="checkOrder()">Submit Order</button>
     </div>
 
-    <div class="log" id="log-content"><strong>KITCHEN LOG:</strong><br>Ready for orders...</div>
-    <button id="share-btn" style="display:none; margin-top:10px; background:#28a745;" onclick="shareResults()">Copy Results 📋</button>
+    <div class="log" id="game-log"><strong>DAILY LOG:</strong><br>Enter today's 3-digit code...</div>
+    <button id="share-btn" style="display:none; margin-top:10px; background:#43a047;" onclick="copyResult()">Share Results 📋</button>
 </div>
 
+<footer>
+    &copy; 2026 Kelly Choi. All Rights Reserved.<br>
+    pizzabageldonut.com
+</footer>
+
 <script>
-    /* --- CONFIGURATION --- */
+    /* --- GAME CONFIG --- */
     const PUBLIC_KEY = "5fa8af5feb371a09c4c51d17"; 
     const PRIVATE_KEY  = "cgpr101Ep0yMn0IZPhMAqwVghoK20BG06c_rPh-i1Npg";
-    /* --------------------- */
+    /* ------------------- */
 
     const today = new Date().toISOString().slice(0, 10);
-    const SECRET_CODE = generateDailyCode();
-    let attempts = 0;
-    const MAX_ATTEMPTS = 9;
+    const CODE = generateDailyCode();
+    let tries = 0;
+    const MAX_TRIES = 9;
     
-    let stats = JSON.parse(localStorage.getItem('pbd_stats')) || { games: 0, hits: 0, lastPlayed: "", playerName: "" };
+    let stats = JSON.parse(localStorage.getItem('pbd_v1_stats')) || { games: 0, hits: 0, lastDate: "", nick: "" };
 
-    if (!stats.playerName) {
-        let name = prompt("Enter a Player Name (max 10 chars):");
-        stats.playerName = name ? name.substring(0, 10) : "Player" + Math.floor(Math.random()*999);
-        localStorage.setItem('pbd_stats', JSON.stringify(stats));
+    // Identity Management
+    if (!stats.nick) {
+        let n = prompt("What should we call you on the leaderboard?");
+        stats.nick = n ? n.substring(0, 12) : "Foodie" + Math.floor(Math.random()*999);
+        localStorage.setItem('pbd_v1_stats', JSON.stringify(stats));
     }
-    document.getElementById('player-display').innerText = "👤 " + stats.playerName;
+    document.getElementById('player-tag').innerText = "📍 " + stats.nick;
 
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => parseInt(a) + parseInt(b), 0);
-        let nums = [0,1,2,3,4,5,6,7,8,9];
-        let code = "";
+        let pool = [0,1,2,3,4,5,6,7,8,9];
+        let result = "";
         for(let i=0; i<3; i++) {
-            let idx = (seed + i * 17) % nums.length; 
-            code += nums.splice(idx, 1);
+            let idx = (seed + i * 17) % pool.length; 
+            result += pool.splice(idx, 1);
         }
-        return code;
+        return result;
     }
 
-    async function uploadScore(score) {
-        const points = 10 - score; 
-        const url = `https://www.dreamlo.com/lb/${PRIVATE_KEY}/add/${encodeURIComponent(stats.playerName)}/${points}`;
-        try { await fetch(url); showGlobalLeaderboard(); } catch(e) { }
+    async function sendToBoard(score) {
+        const pts = 10 - score; 
+        const url = `https://www.dreamlo.com/lb/${PRIVATE_KEY}/add/${encodeURIComponent(stats.nick)}/${pts}`;
+        try { await fetch(url); loadLeaderboard(); } catch(e) {}
     }
 
-    async function showGlobalLeaderboard() {
+    async function loadLeaderboard() {
         const url = `https://www.dreamlo.com/lb/${PUBLIC_KEY}/json`;
         try {
-            const response = await fetch(url);
-            const data = await response.json();
+            const resp = await fetch(url);
+            const data = await resp.json();
             if(!data.dreamlo.leaderboard) return;
-            let boardHtml = "<strong>GLOBAL TOP SCORES:</strong><br>";
-            const scores = data.dreamlo.leaderboard.entry;
-            const list = Array.isArray(scores) ? scores.slice(0, 5) : (scores ? [scores] : []);
-            list.forEach(entry => { boardHtml += `${entry.name}: ${10 - entry.score} tries<br>`; });
-            document.getElementById('log-content').innerHTML = boardHtml;
-        } catch (e) { document.getElementById('log-content').innerHTML = "No scores recorded yet."; }
+            let html = "<strong>TOP FOODIES TODAY:</strong><br>";
+            const entries = data.dreamlo.leaderboard.entry;
+            const top = Array.isArray(entries) ? entries.slice(0, 5) : (entries ? [entries] : []);
+            top.forEach(e => { html += `${e.name}: ${10 - e.score} tries<br>`; });
+            document.getElementById('game-log').innerHTML = html;
+        } catch (e) { }
     }
 
-    function updateDisplay() {
+    function refreshUI() {
         const avg = stats.games === 0 ? ".000" : (stats.hits / stats.games).toFixed(3).replace(/^0/, '');
         document.getElementById('stat-avg').innerText = avg;
         document.getElementById('stat-gp').innerText = stats.games;
-        if (stats.lastPlayed === today) {
-            document.getElementById('game-ui').innerHTML = "<h3>See you tomorrow!</h3>";
+        if (stats.lastDate === today) {
+            document.getElementById('input-area').innerHTML = "<h3>Great job! Come back tomorrow for a new code.</h3>";
             document.getElementById('share-btn').style.display = 'block';
-            showGlobalLeaderboard();
+            loadLeaderboard();
         }
     }
 
-    function makeGuess() {
-        const input = document.getElementById('guess');
+    function checkOrder() {
+        const input = document.getElementById('user-guess');
         const val = input.value;
         if (val.length !== 3 || isNaN(val)) return;
 
-        attempts++;
+        tries++;
         let p = 0, b = 0, d = 0;
-        let guessArr = val.split(''), codeArr = SECRET_CODE.split('');
-        const log = document.getElementById('log-content');
-        if (attempts === 1) log.innerHTML = "";
-        const entry = document.createElement('div');
+        let guessArr = val.split(''), codeArr = CODE.split('');
+        const log = document.getElementById('game-log');
+        if (tries === 1) log.innerHTML = "";
+        const row = document.createElement('div');
 
-        if (val === SECRET_CODE) {
-            entry.innerHTML = `[${attempts}] ${val} → <span class="win-text">🍕 PIZZA PIZZA PIZZA!</span>`;
-            log.prepend(entry);
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            endGame(true);
+        if (val === CODE) {
+            row.innerHTML = `[${tries}] ${val} → <span class="win-splash">🍕 PIZZA PIZZA PIZZA!</span>`;
+            log.prepend(row);
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#d32f2f', '#ffeb3b', '#ffffff'] });
+            finish(true);
         } else {
             guessArr.forEach((num, i) => {
                 if (num === codeArr[i]) { p++; } 
                 else if (codeArr.includes(num)) { b++; } 
                 else { d++; }
             });
-            entry.innerHTML = `[${attempts}] ${val} → <span class="pizza">${p}P</span> <span class="bagel">${b}B</span> <span class="donut">${d}D</span>`;
-            log.prepend(entry);
-            if (attempts >= MAX_ATTEMPTS) endGame(false);
+            row.innerHTML = `[${tries}] ${val} → <span class="p-result">${p}P</span> <span class="b-result">${b}B</span> <span class="d-result">${d}D</span>`;
+            log.prepend(row);
+            if (tries >= MAX_TRIES) finish(false);
         }
         input.value = "";
     }
 
-    function endGame(win) {
-        if (stats.lastPlayed !== today) {
+    function finish(isWin) {
+        if (stats.lastDate !== today) {
             stats.games++;
-            if (win) { stats.hits++; uploadScore(attempts); } 
-            else { alert("Better luck tomorrow! The code was " + SECRET_CODE); }
-            stats.lastPlayed = today;
-            localStorage.setItem('pbd_stats', JSON.stringify(stats));
+            if (isWin) { stats.hits++; sendToBoard(tries); } 
+            else { alert("Order closed! The code was " + CODE); }
+            stats.lastDate = today;
+            localStorage.setItem('pbd_v1_stats', JSON.stringify(stats));
         }
-        updateDisplay();
+        refreshUI();
     }
 
-    function shareResults() {
-        const text = `🍕 Triple Play: Pizza Bagel Donut\nScore: ${attempts}/${MAX_ATTEMPTS}\nResult: PIZZA PIZZA PIZZA! 🍕\n#TriplePlayGame`;
+    function copyResult() {
+        const text = `🍕 Pizza Bagel Donut\nDaily Challenge\nScore: ${tries}/${MAX_TRIES}\nResult: PIZZA PIZZA PIZZA!\n#PizzaBagelDonut`;
         navigator.clipboard.writeText(text).then(() => alert("Results Copied!"));
     }
 
-    updateDisplay();
-    if (stats.lastPlayed !== today) showGlobalLeaderboard();
+    refreshUI();
+    if (stats.lastDate !== today) loadLeaderboard();
 </script>
 </body>
 </html>
