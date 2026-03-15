@@ -235,21 +235,50 @@ function ensureStatsElements() {
     }
 
     container.innerHTML = `
-        <div class="stats-block">
-            <div>Played: <span id="s-played">0</span></div>
-            <div>Wins: <span id="s-wins">0</span></div>
-            <div>Win Rate: <span id="s-winrate">0%</span></div>
-            <div>Avg Rows: <span id="s-avg">0</span></div>
+    <div class="stats-section">
+        <div class="stats-card">
+            <div class="stats-title">Your Stats</div>
+            <div class="stats-grid">
+                <div class="stat-box">
+                    <div class="stat-value" id="s-played">0</div>
+                    <div class="stat-label">Played</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="s-wins">0</div>
+                    <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="s-winrate">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="s-avg">0</div>
+                    <div class="stat-label">Avg Rows</div>
+                </div>
+            </div>
         </div>
 
-        <div class="stats-block" style="margin-top:16px;">
-            <div>Players: <span id="g-played">0</span></div>
-            <div>Wins: <span id="g-wins">0</span></div>
-            <div>Win Rate: <span id="g-winrate">0%</span></div>
+        <div class="stats-card">
+            <div class="stats-title">Global Stats</div>
+            <div class="stats-grid stats-grid-3">
+                <div class="stat-box">
+                    <div class="stat-value" id="g-played">0</div>
+                    <div class="stat-label">Players</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="g-wins">0</div>
+                    <div class="stat-label">Wins</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value" id="g-winrate">0%</div>
+                    <div class="stat-label">Win Rate</div>
+                </div>
+            </div>
         </div>
 
-        <div id="dist-chart" style="margin-top:15px;"></div>
-    `;
+        <div id="dist-chart" class="dist-chart"></div>
+    </div>
+`;
 }
 
 
