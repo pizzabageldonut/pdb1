@@ -127,14 +127,14 @@
    PIZZA BAGEL DONUT GAME LOGIC
 ------------------------------ */
 
-// --- LOCAL DATE (prevents UTC rollover issues) ---
+// --- LOCAL DATE ---
 const now = new Date();
 const today =
     now.getFullYear() + "-" +
     String(now.getMonth() + 1).padStart(2, "0") + "-" +
     String(now.getDate()).padStart(2, "0");
 
-// --- FIREBASE PATH (TODAY ONLY) ---
+// --- FIREBASE ---
 const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
 const STATS_URL = `${FIREBASE_BASE}/stats/${today}.json`;
 
@@ -144,7 +144,7 @@ function generateDailyCode() {
     let res = "";
 
     for (let i = 0; i < 3; i++) {
-        let idx = (seed + (i * 17)) % pool.length;
+        const idx = (seed + (i * 17)) % pool.length;
         res += pool.splice(idx, 1);
     }
     return res;
@@ -171,10 +171,10 @@ function safeSet(key, value) {
     }
 }
 
-// --- LOCAL PLAYER STATS (LIFETIME) ---
+// --- LOCAL PLAYER STATS (HIDDEN UI, STILL USED FOR SHARE / DAILY LOCK) ---
 let localStats;
 try {
-    localStats = JSON.parse(safeGet("pbd_v21")) || {
+    localStats = JSON.parse(safeGet("pbd_v22")) || {
         played: 0,
         wins: 0,
         totalRows: 0,
@@ -200,7 +200,7 @@ function createPlayerId() {
 }
 
 function getPlayerId() {
-    let existing = safeGet("pbd_player");
+    const existing = safeGet("pbd_player");
     if (existing) return existing;
 
     const newId = createPlayerId();
@@ -211,29 +211,10 @@ function getPlayerId() {
         if (verify) return verify;
     }
 
-    // fallback for storage-blocked environments
     return newId;
 }
 
 const playerId = getPlayerId();
-console.log("playerId:", playerId);
-
-
-/* -----------------------------
-   STATS UI AUTO-CREATION
------------------------------- */
-
-function ensureStatsElements() {
-    const modal = document.getElementById("stats-modal");
-    if (!modal) return;
-
-    let container = document.getElementById("stats-container");
-
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "stats-container";
-        modal.appendChild(container);
-    }
 
 
 /* -----------------------------
@@ -241,10 +222,10 @@ function ensureStatsElements() {
 ------------------------------ */
 
 window.onload = () => {
-    ensureStatsElements();
-
     if (localStats.lastDate === today) {
-        toggleModal("info-modal", false);
+        const infoModal = document.getElementById("info-modal");
+        if (infoModal) infoModal.style.display = "none";
+
         localStats.history.forEach(h => renderRow(h.g, h.e));
         showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
     }
@@ -255,15 +236,9 @@ window.onload = () => {
    MODAL
 ------------------------------ */
 
-async function toggleModal(id, show) {
+function toggleModal(id, show) {
     const modal = document.getElementById(id);
     if (modal) modal.style.display = show ? "block" : "none";
-
-    if (id === "stats-modal" && show) {
-        ensureStatsElements();
-        updateStatsUI();
-        await fetchAndRenderGlobal();
-    }
 }
 
 
@@ -305,8 +280,8 @@ async function submitGuess() {
     if (currentInput.length !== 3) return;
 
     let p = 0, b = 0, d = 0;
-    let gArr = currentInput.split("");
-    let cArr = CODE.split("");
+    const gArr = currentInput.split("");
+    const cArr = CODE.split("");
 
     gArr.forEach((n, i) => {
         if (n === cArr[i]) p++;
@@ -339,7 +314,7 @@ async function submitGuess() {
         }
 
         localStats.lastDate = today;
-        safeSet("pbd_v21", JSON.stringify(localStats));
+        safeSet("pbd_v22", JSON.stringify(localStats));
 
         await syncGlobalData({
             win: win,
@@ -356,7 +331,7 @@ async function submitGuess() {
 
 
 /* -----------------------------
-   FIREBASE WRITE (TODAY ONLY)
+   FIREBASE WRITE
    ONE SUBMISSION PER PLAYER/DAY
 ------------------------------ */
 
@@ -369,115 +344,16 @@ async function syncGlobalData(game) {
         });
         const existing = await res.json();
 
-        if (existing) {
-            console.log("Stats already submitted today for player:", playerId);
-            return;
-        }
+        if (existing) return;
 
         await fetch(playerPath, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(game)
         });
-
     } catch (e) {
         console.error("Global stats write error:", e);
     }
-}
-
-
-/* -----------------------------
-   FIREBASE READ (TODAY ONLY)
------------------------------- */
-
-async function fetchAndRenderGlobal() {
-    const chart = document.getElementById("dist-chart");
-    if (!chart) return;
-
-    try {
-        const res = await fetch(`${STATS_URL}?t=${Date.now()}`, {
-            cache: "no-store"
-        });
-        const data = await res.json();
-
-        const dist = [0, 0, 0, 0, 0, 0, 0];
-        let totalPlayed = 0;
-        let totalWins = 0;
-
-        if (data) {
-            Object.values(data).forEach(game => {
-                if (!game) return;
-
-                totalPlayed++;
-
-                if (game.win === true && game.rows >= 1 && game.rows <= 6) {
-                    dist[game.rows - 1]++;
-                    totalWins++;
-                } else {
-                    dist[6]++;
-                }
-            });
-        }
-
-        const maxVal = Math.max(...dist, 1);
-
-        chart.innerHTML = dist.map((count, i) => {
-            const label = i < 6 ? (i + 1) : "X";
-            const width = count > 0 ? Math.max((count / maxVal) * 100, 8) : 8;
-
-            return `
-                <div class="dist-row">
-                    <span>${label}</span>
-                    <div class="dist-bar" style="width:${width}%">${count}</div>
-                </div>
-            `;
-        }).join("");
-
-        const gPlayed = document.getElementById("g-played");
-        const gWins = document.getElementById("g-wins");
-        const gWinrate = document.getElementById("g-winrate");
-        const gDate = document.getElementById("g-date");
-
-        if (gPlayed) gPlayed.innerText = totalPlayed;
-        if (gWins) gWins.innerText = totalWins;
-        if (gWinrate) {
-            gWinrate.innerText = totalPlayed === 0
-                ? "0%"
-                : `${Math.round((totalWins / totalPlayed) * 100)}%`;
-        }
-        if (gDate) gDate.innerText = today;
-
-    } catch (e) {
-        console.error("Global stats read error:", e);
-        chart.innerText = "Today's stats unavailable";
-    }
-}
-
-
-/* -----------------------------
-   LOCAL STATS UI
------------------------------- */
-
-function updateStatsUI() {
-    const sPlayed = document.getElementById("s-played");
-    const sWins = document.getElementById("s-wins");
-    const sAvg = document.getElementById("s-avg");
-    const sWinrate = document.getElementById("s-winrate");
-
-    if (sPlayed) sPlayed.innerText = localStats.played;
-    if (sWins) sWins.innerText = localStats.wins;
-
-    const avg = localStats.wins === 0
-        ? "0"
-        : (localStats.totalRows / localStats.wins).toFixed(1);
-
-    if (sAvg) sAvg.innerText = avg;
-
-    const winRate = localStats.played === 0
-        ? "0%"
-        : `${Math.round((localStats.wins / localStats.played) * 100)}%`;
-
-    if (sWinrate) sWinrate.innerText = winRate;
 }
 
 
@@ -525,8 +401,6 @@ function showEnd(win) {
         shareBtn.style.opacity = "1";
         shareBtn.style.pointerEvents = "auto";
     }
-
-    setTimeout(() => toggleModal("stats-modal", true), 1500);
 }
 
 
