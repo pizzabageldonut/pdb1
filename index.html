@@ -123,9 +123,11 @@
 </div>
 
 <script>
+    // 1. Define constants once
     const FIREBASE_URL = "https://pizzabageldonut-default-rtdb.firebaseio.com/stats.json";
     const today = new Date().toISOString().slice(0, 10);
     
+    // 2. Daily Code Logic
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
         let pool = [0,1,2,3,4,5,6,7,8,9], res = "";
@@ -138,17 +140,22 @@
     
     const CODE = generateDailyCode();
     let currentInput = "";
-    // Using v11 to ensure a clean slate for text/logic sync
-    let localStats = JSON.parse(localStorage.getItem('pbd_v11')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
+    // Change the version (pbd_v15) to force a fresh start and fix local data errors
+    let localStats = JSON.parse(localStorage.getItem('pbd_v15')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
-    window.onload = () => { 
-        if (localStats.lastDate === today) {
-            toggleModal('info-modal', false);
-            localStats.history.forEach(h => renderRow(h.g, h.e));
-            showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+    // 3. The Modal Fix (Crucial for the Start button)
+    async function toggleModal(id, show) { 
+        const modal = document.getElementById(id);
+        if (modal) modal.style.display = show ? 'block' : 'none';
+        
+        // Load stats only when opening the stats modal
+        if (id === 'stats-modal' && show) {
+            updateStatsUI();
+            await loadGlobalStats();
         }
-    };
+    }
 
+    // 4. Input & Game Logic
     function handlePress(val) {
         if (localStats.lastDate === today) return;
         if (val === 'DEL') currentInput = currentInput.slice(0, -1);
@@ -181,26 +188,49 @@
                 localStats.wins++; 
                 localStats.totalRows += localStats.history.length;
                 confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); 
-                await updateGlobalStats(localStats.history.length);
+                await syncGlobalData(localStats.history.length);
             }
             localStats.lastDate = today;
-            localStorage.setItem('pbd_v11', JSON.stringify(localStats));
+            localStorage.setItem('pbd_v15', JSON.stringify(localStats));
             showEnd(isWin);
         }
         currentInput = ""; updateDisplay();
     }
 
-    async function updateGlobalStats(rowNum) {
+    // 5. Global Stats Logic (The "PUT" fix)
+    async function syncGlobalData(rowNum) {
         try {
-            const getRes = await fetch(FIREBASE_URL);
-            let data = await getRes.json();
+            const res = await fetch(FIREBASE_URL);
+            let data = await res.json();
             if (!data || !data.dist) data = { dist: [0, 0, 0, 0, 0, 0] };
             data.dist[rowNum - 1] = (data.dist[rowNum - 1] || 0) + 1;
+            
             await fetch(FIREBASE_URL, {
                 method: 'PUT',
                 body: JSON.stringify(data)
             });
-        } catch (e) { console.error(e); }
+        } catch (e) { console.error("Global Sync Error:", e); }
+    }
+
+    async function loadGlobalStats() {
+        const chart = document.getElementById('dist-chart');
+        try {
+            const res = await fetch(`${FIREBASE_URL}?t=${Date.now()}`);
+            const data = await res.json();
+            const dist = (data && data.dist) ? data.dist : [0,0,0,0,0,0];
+            const maxVal = Math.max(...dist, 1);
+            chart.innerHTML = dist.map((count, i) => `
+                <div class="dist-row">
+                    <span>${i+1}</span>
+                    <div class="dist-bar" style="width:${Math.max((count/maxVal)*100, 8)}%">${count}</div>
+                </div>`).join('');
+        } catch(e) { chart.innerText = "Stats unavailable"; }
+    }
+
+    function updateStatsUI() {
+        document.getElementById('s-played').innerText = localStats.played;
+        document.getElementById('s-wins').innerText = localStats.wins;
+        document.getElementById('s-avg').innerText = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
     }
 
     function renderRow(g, e) {
@@ -223,38 +253,21 @@
         setTimeout(() => toggleModal('stats-modal', true), 1500);
     }
 
-    async function toggleModal(id, s) { 
-        document.getElementById(id).style.display = s ? 'block' : 'none';
-        if (id === 'stats-modal' && s) {
-            document.getElementById('s-played').innerText = localStats.played;
-            document.getElementById('s-wins').innerText = localStats.wins;
-            document.getElementById('s-avg').innerText = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
-            
-            const chart = document.getElementById('dist-chart');
-            try {
-                const res = await fetch(FIREBASE_URL);
-                const data = await res.json();
-                const dist = (data && data.dist) ? data.dist : [0,0,0,0,0,0];
-                const maxVal = Math.max(...dist, 1);
-                chart.innerHTML = dist.map((count, i) => `
-                    <div class="dist-row">
-                        <span>${i+1}</span>
-                        <div class="dist-bar" style="width:${Math.max((count/maxVal)*100, 8)}%">${count}</div>
-                    </div>`).join('');
-            } catch(e) { chart.innerText = "Stats currently unavailable"; }
-        }
-    }
-
     function share() {
         const win = localStats.history.some(h => h.e === "🍕🍕🍕");
         const emojiGrid = localStats.history.map(h => h.e).join('\n');
         const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nPlayed: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
-        if (navigator.share) { 
-            navigator.share({ text: text }).catch(() => navigator.clipboard.writeText(text)); 
-        } else { 
-            navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!")); 
-        }
+        if (navigator.share) { navigator.share({ text: text }); } 
+        else { navigator.clipboard.writeText(text).then(() => alert("Copied!")); }
     }
+
+    window.onload = () => { 
+        if (localStats.lastDate === today) {
+            toggleModal('info-modal', false);
+            localStats.history.forEach(h => renderRow(h.g, h.e));
+            showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+        }
+    };
 </script>
 </body>
 </html>
