@@ -126,8 +126,11 @@
 
 
 <script>
+    // --- DATABASE CONFIG ---
+    // PASTE YOUR FIREBASE URL BELOW (Include the .json at the end!)
+    const FIREBASE_URL = "https://pizzabageldonut-default-rtdb.firebaseio.com/stats.json";
+
     const today = new Date().toISOString().slice(0, 10);
-    const FIREBASE_URL = `https://pizzabageldonut-default-rtdb.firebaseio.com/stats/${today}.json`;
     
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
@@ -141,7 +144,7 @@
     
     const CODE = generateDailyCode();
     let currentInput = "", tries = 0;
-    let localStats = JSON.parse(localStorage.getItem('pbd_v8')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
+    let localStats = JSON.parse(localStorage.getItem('pbd_v6')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
     function handlePress(val) {
         if (localStats.lastDate === today) return;
@@ -158,7 +161,6 @@
             box.classList.toggle('filled', !!currentInput[i]);
         }
     }
-
     async function submitGuess() {
         tries++;
         let p=0, b=0, d=0;
