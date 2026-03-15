@@ -127,12 +127,19 @@
    PIZZA BAGEL DONUT GAME LOGIC
 ------------------------------ */
 
-// --- DATE / DATABASE (TODAY ONLY) ---
-const today = new Date().toISOString().slice(0, 10);
-const STATS_URL = `https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats/${today}.json`;
+// --- LOCAL DATE (prevents UTC rollover issues) ---
+const now = new Date();
+const today =
+    now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
+// --- FIREBASE PATH (TODAY ONLY) ---
+const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
+const STATS_URL = `${FIREBASE_BASE}/stats/${today}.json`;
 
 function generateDailyCode() {
-    const seed = today.split('-').reduce((a, b) => a + parseInt(b, 10), 0);
+    const seed = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0);
     let pool = [0,1,2,3,4,5,6,7,8,9];
     let res = "";
 
@@ -146,14 +153,26 @@ function generateDailyCode() {
 const CODE = generateDailyCode();
 let currentInput = "";
 
-// bump storage version
-let localStats = JSON.parse(localStorage.getItem('pbd_v19')) || {
+// --- LOCAL PLAYER STATS (LIFETIME) ---
+let localStats = JSON.parse(localStorage.getItem("pbd_v20")) || {
     played: 0,
     wins: 0,
     totalRows: 0,
     lastDate: "",
     history: []
 };
+
+// --- UNIQUE PLAYER ID (ANTI-SPAM / ONE SUBMISSION PER DAY) ---
+let playerId = localStorage.getItem("pbd_player");
+
+if (!playerId) {
+    if (window.crypto && crypto.randomUUID) {
+        playerId = crypto.randomUUID();
+    } else {
+        playerId = "pbd_" + Math.random().toString(36).slice(2) + Date.now();
+    }
+    localStorage.setItem("pbd_player", playerId);
+}
 
 
 /* -----------------------------
@@ -197,7 +216,7 @@ window.onload = () => {
     ensureStatsElements();
 
     if (localStats.lastDate === today) {
-        toggleModal('info-modal', false);
+        toggleModal("info-modal", false);
         localStats.history.forEach(h => renderRow(h.g, h.e));
         showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
     }
@@ -210,9 +229,9 @@ window.onload = () => {
 
 async function toggleModal(id, show) {
     const modal = document.getElementById(id);
-    if (modal) modal.style.display = show ? 'block' : 'none';
+    if (modal) modal.style.display = show ? "block" : "none";
 
-    if (id === 'stats-modal' && show) {
+    if (id === "stats-modal" && show) {
         ensureStatsElements();
         updateStatsUI();
         await fetchAndRenderGlobal();
@@ -227,9 +246,9 @@ async function toggleModal(id, show) {
 function handlePress(val) {
     if (localStats.lastDate === today) return;
 
-    if (val === 'DEL') {
+    if (val === "DEL") {
         currentInput = currentInput.slice(0, -1);
-    } else if (val === 'ENT' && currentInput.length === 3) {
+    } else if (val === "ENT" && currentInput.length === 3) {
         submitGuess();
         return;
     } else if (currentInput.length < 3 && !currentInput.includes(val)) {
@@ -241,11 +260,11 @@ function handlePress(val) {
 
 function updateDisplay() {
     for (let i = 0; i < 3; i++) {
-        const box = document.getElementById('d' + i);
+        const box = document.getElementById("d" + i);
         if (!box) continue;
 
         box.innerText = currentInput[i] || "";
-        box.classList.toggle('filled', !!currentInput[i]);
+        box.classList.toggle("filled", !!currentInput[i]);
     }
 }
 
@@ -258,8 +277,8 @@ async function submitGuess() {
     if (currentInput.length !== 3) return;
 
     let p = 0, b = 0, d = 0;
-    let gArr = currentInput.split('');
-    let cArr = CODE.split('');
+    let gArr = currentInput.split("");
+    let cArr = CODE.split("");
 
     gArr.forEach((n, i) => {
         if (n === cArr[i]) p++;
@@ -292,9 +311,9 @@ async function submitGuess() {
         }
 
         localStats.lastDate = today;
-        localStorage.setItem('pbd_v19', JSON.stringify(localStats));
+        localStorage.setItem("pbd_v20", JSON.stringify(localStats));
 
-        // write THIS completed game under today's path only
+        // record this player's completed game once for today
         await syncGlobalData({
             win: win,
             rows: rowsUsed,
@@ -311,15 +330,31 @@ async function submitGuess() {
 
 /* -----------------------------
    FIREBASE WRITE (TODAY ONLY)
+   ONE SUBMISSION PER PLAYER/DAY
 ------------------------------ */
 
 async function syncGlobalData(game) {
+    const playerPath = `${FIREBASE_BASE}/stats/${today}/${playerId}.json`;
+
     try {
-        await fetch(STATS_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+        // check if this player already submitted today
+        const res = await fetch(`${playerPath}?t=${Date.now()}`, {
+            cache: "no-store"
+        });
+        const existing = await res.json();
+
+        if (existing) {
+            console.log("Stats already submitted today");
+            return;
+        }
+
+        // write once under stable player key
+        await fetch(playerPath, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
             body: JSON.stringify(game)
         });
+
     } catch (e) {
         console.error("Global stats write error:", e);
     }
@@ -335,13 +370,12 @@ async function fetchAndRenderGlobal() {
     if (!chart) return;
 
     try {
-        // fetch ONLY today's node
         const res = await fetch(`${STATS_URL}?t=${Date.now()}`, {
             cache: "no-store"
         });
         const data = await res.json();
 
-        // indexes 0-5 => wins in 1-6 guesses, index 6 => losses
+        // 0-5 => wins in 1-6 guesses, 6 => losses
         const dist = [0, 0, 0, 0, 0, 0, 0];
         let totalPlayed = 0;
         let totalWins = 0;
@@ -364,7 +398,7 @@ async function fetchAndRenderGlobal() {
         const maxVal = Math.max(...dist, 1);
 
         chart.innerHTML = dist.map((count, i) => {
-            const label = i < 6 ? (i + 1) : 'X';
+            const label = i < 6 ? (i + 1) : "X";
             const width = count > 0 ? Math.max((count / maxVal) * 100, 8) : 8;
 
             return `
@@ -373,12 +407,12 @@ async function fetchAndRenderGlobal() {
                     <div class="dist-bar" style="width:${width}%">${count}</div>
                 </div>
             `;
-        }).join('');
+        }).join("");
 
-        const gPlayed = document.getElementById('g-played');
-        const gWins = document.getElementById('g-wins');
-        const gWinrate = document.getElementById('g-winrate');
-        const gDate = document.getElementById('g-date');
+        const gPlayed = document.getElementById("g-played");
+        const gWins = document.getElementById("g-wins");
+        const gWinrate = document.getElementById("g-winrate");
+        const gDate = document.getElementById("g-date");
 
         if (gPlayed) gPlayed.innerText = totalPlayed;
         if (gWins) gWins.innerText = totalWins;
@@ -401,10 +435,10 @@ async function fetchAndRenderGlobal() {
 ------------------------------ */
 
 function updateStatsUI() {
-    const sPlayed = document.getElementById('s-played');
-    const sWins = document.getElementById('s-wins');
-    const sAvg = document.getElementById('s-avg');
-    const sWinrate = document.getElementById('s-winrate');
+    const sPlayed = document.getElementById("s-played");
+    const sWins = document.getElementById("s-wins");
+    const sAvg = document.getElementById("s-avg");
+    const sWinrate = document.getElementById("s-winrate");
 
     if (sPlayed) sPlayed.innerText = localStats.played;
     if (sWins) sWins.innerText = localStats.wins;
@@ -428,14 +462,14 @@ function updateStatsUI() {
 ------------------------------ */
 
 function renderRow(g, e) {
-    const row = document.createElement('div');
-    row.className = 'guess-row' + (e === "🍕🍕🍕" ? " winner" : "");
+    const row = document.createElement("div");
+    row.className = "guess-row" + (e === "🍕🍕🍕" ? " winner" : "");
     row.innerHTML = `
         <div class="guess-code">${g}</div>
         <div class="guess-emojis">${e}</div>
     `;
 
-    const log = document.getElementById('guess-log');
+    const log = document.getElementById("guess-log");
     if (log) {
         log.appendChild(row);
         log.scrollTop = log.scrollHeight;
@@ -448,16 +482,16 @@ function renderRow(g, e) {
 ------------------------------ */
 
 function showEnd(win) {
-    const keyboard = document.getElementById('keyboard');
-    const inputBoxes = document.getElementById('input-boxes');
-    const msg = document.getElementById('end-msg');
-    const shareBtn = document.getElementById('share-icon');
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const msg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
 
-    if (keyboard) keyboard.style.display = 'none';
-    if (inputBoxes) inputBoxes.style.display = 'none';
+    if (keyboard) keyboard.style.display = "none";
+    if (inputBoxes) inputBoxes.style.display = "none";
 
     if (msg) {
-        msg.style.display = 'block';
+        msg.style.display = "block";
         msg.innerText = win
             ? "You Win 🍕🍕🍕"
             : "KITCHEN CLOSED! CODE: " + CODE;
@@ -468,7 +502,7 @@ function showEnd(win) {
         shareBtn.style.pointerEvents = "auto";
     }
 
-    setTimeout(() => toggleModal('stats-modal', true), 1500);
+    setTimeout(() => toggleModal("stats-modal", true), 1500);
 }
 
 
@@ -478,11 +512,11 @@ function showEnd(win) {
 
 function share() {
     const win = localStats.history.some(h => h.e === "🍕🍕🍕");
-    const emojiGrid = localStats.history.map(h => h.e).join('\n');
+    const emojiGrid = localStats.history.map(h => h.e).join("\n");
 
     const text = `🍕🥯🍩 PIZZA BAGEL DONUT
 Played: ${today}
-Score: ${win ? localStats.history.length : 'X'}/6
+Score: ${win ? localStats.history.length : "X"}/6
 
 ${emojiGrid}
 
