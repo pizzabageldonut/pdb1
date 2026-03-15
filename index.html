@@ -23,10 +23,25 @@
         .digit-box.filled { border-color: var(--sauce); }
         .digit-box.error { border-color: var(--sauce); color: var(--sauce); animation: shake 0.2s ease-in-out 0s 2; }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } 100% { transform: translateX(0); } }
+        
         .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
         .key-row { display: flex; gap: 5px; width: 100%; }
-        .key { flex: 1; height: 46px; background: var(--key); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+        .key { 
+            flex: 1; 
+            height: 48px; 
+            background: var(--key); 
+            border-radius: 4px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-weight: 700; 
+            font-size: 1.1rem; 
+            cursor: pointer; 
+            -webkit-tap-highlight-color: rgba(0,0,0,0.1); 
+        }
+        .key:active { background: #ccc; }
         .key.action { background: #c5c5c3; font-size: 0.7rem; letter-spacing: 0.5px; flex: 2; }
+        
         .toolbar { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
         .tool-btn { font-size: 1.5rem; cursor: pointer; opacity: 0.8; }
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 20px; box-sizing: border-box; overflow-y: auto; }
@@ -57,14 +72,22 @@
         </div>
         <div class="keypad-area" id="keyboard">
             <div class="key-row">
-                <div class="key" onclick="press('1')">1</div><div class="key" onclick="press('2')">2</div><div class="key" onclick="press('3')">3</div><div class="key" onclick="press('4')">4</div><div class="key" onclick="press('5')">5</div>
+                <button class="key" onclick="press('1')">1</button>
+                <button class="key" onclick="press('2')">2</button>
+                <button class="key" onclick="press('3')">3</button>
+                <button class="key" onclick="press('4')">4</button>
+                <button class="key" onclick="press('5')">5</button>
             </div>
             <div class="key-row">
-                <div class="key" onclick="press('6')">6</div><div class="key" onclick="press('7')">7</div><div class="key" onclick="press('8')">8</div><div class="key" onclick="press('9')">9</div><div class="key" onclick="press('0')">0</div>
+                <button class="key" onclick="press('6')">6</button>
+                <button class="key" onclick="press('7')">7</button>
+                <button class="key" onclick="press('8')">8</button>
+                <button class="key" onclick="press('9')">9</button>
+                <button class="key" onclick="press('0')">0</button>
             </div>
             <div class="key-row">
-                <div class="key action" onclick="press('DEL')">DELETE</div>
-                <div class="key action" style="background:var(--sauce); color:white;" onclick="press('ENT')">SUBMIT</div>
+                <button class="key action" onclick="press('DEL')">DELETE</button>
+                <button class="key action" style="background:var(--sauce); color:white;" onclick="press('ENT')">SUBMIT</button>
             </div>
         </div>
         <div class="toolbar">
@@ -137,4 +160,111 @@
     }
 
     function showError() {
-        for (let i =
+        for (let i = 0; i < 3; i++) {
+            const box = document.getElementById('d' + i);
+            if (!currentInput[i]) { box.innerText = "X"; box.classList.add('error'); }
+        }
+    }
+
+    function updateDisplay() {
+        for (let i = 0; i < 3; i++) {
+            const box = document.getElementById('d' + i);
+            if (!box.classList.contains('error')) {
+                box.innerText = currentInput[i] || "";
+                box.classList.toggle('filled', !!currentInput[i]);
+            }
+        }
+    }
+
+    async function submitGuess() {
+        tries++;
+        let p=0, b=0, d=0;
+        let gArr = currentInput.split(''), cArr = CODE.split('');
+        gArr.forEach((n, i) => { if (n === cArr[i]) p++; else if (cArr.includes(n)) b++; else d++; });
+        const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
+        renderRow(currentInput, emojis);
+        localStats.history.push({g: currentInput, e: emojis});
+        
+        if (currentInput === CODE || tries >= 6) {
+            localStats.played++;
+            if (currentInput === CODE) { 
+                localStats.unboxed++; 
+                localStats.totalRows += tries;
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                await updateGlobalStats(tries);
+            }
+            localStats.lastDate = today;
+            localStorage.setItem('pbd_stats_local_v3', JSON.stringify(localStats));
+            showEnd(currentInput === CODE);
+        }
+        currentInput = ""; updateDisplay();
+    }
+
+    async function updateGlobalStats(rowNum) {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json() || { dist: [0,0,0,0,0,0] };
+            if(!data.dist) data.dist = [0,0,0,0,0,0];
+            data.dist[rowNum - 1]++;
+            await fetch(FIREBASE_URL, { method: 'PATCH', body: JSON.stringify({ dist: data.dist }) });
+        } catch (e) { console.error("DB error", e); }
+    }
+
+    async function fetchGlobalStats() {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json();
+            return data.dist || [0,0,0,0,0,0];
+        } catch (e) { return [0,0,0,0,0,0]; }
+    }
+
+    function renderRow(g, e) {
+        const row = document.createElement('div'); row.className = 'guess-row';
+        if (e === "🍕🍕🍕") row.className += ' winner';
+        row.innerHTML = `<div class="guess-code">${g}</div><div class="guess-emojis">${e}</div>`;
+        const log = document.getElementById('guess-log');
+        log.appendChild(row);
+        log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
+    }
+
+    function showEnd(win) {
+        document.getElementById('keyboard').style.display = 'none';
+        document.getElementById('input-boxes').style.display = 'none';
+        const msg = document.getElementById('end-msg');
+        msg.style.display = 'block';
+        msg.innerText = win ? "PIZZA BOX OPENED! 🍕" : "KITCHEN CLOSED! CODE: " + CODE;
+        document.getElementById('share-icon').style.opacity = "1";
+        document.getElementById('share-icon').style.pointerEvents = "auto";
+    }
+
+    async function toggleModal(id, s) { 
+        document.getElementById(id).style.display = s ? 'block' : 'none';
+        if (id === 'stats-modal') {
+            document.getElementById('s-played').innerText = localStats.played;
+            document.getElementById('s-unboxed').innerText = localStats.unboxed;
+            document.getElementById('s-avg').innerText = localStats.unboxed === 0 ? 0 : (localStats.totalRows / localStats.unboxed).toFixed(1);
+            const globalDist = await fetchGlobalStats();
+            const chart = document.getElementById('dist-chart'); chart.innerHTML = "";
+            const max = Math.max(...globalDist, 1);
+            globalDist.forEach((count, i) => {
+                const width = Math.max((count / max) * 100, 7);
+                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar" style="width:${width}%"></div></div>`;
+            });
+        }
+    }
+    
+    function share() {
+        const win = localStats.history.some(h => h.e === "🍕🍕🍕");
+        const emojiLines = localStats.history.map(h => h.e).join('\n');
+        const scoreLine = win ? `${localStats.history.length}/6` : 'X/6';
+        const text = `🍕🥯🍩 Pizza Bagel Donut\nShift: ${today}\nScore: ${scoreLine}\n\n${emojiLines}\n\n#PizzaBagelDonut`;
+        navigator.clipboard.writeText(text).then(() => alert("Spoiler-free box score copied!"));
+    }
+
+    if (localStats.lastDate === today) {
+        localStats.history.forEach(h => renderRow(h.g, h.e));
+        showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+    }
+</script>
+</body>
+</html>
