@@ -11,18 +11,20 @@
         
         .game-container { background: var(--dough); padding: 30px; border-radius: 20px; border: 6px solid var(--sauce); box-shadow: 0 15px 35px rgba(0,0,0,0.15); max-width: 400px; width: 100%; text-align: center; }
         
-        /* The New Emoji Header Style */
-        .icon-header { font-size: 3.5rem; line-height: 1; margin-bottom: 5px; }
-        h1 { margin: 0 0 15px 0; font-size: 1.8rem; letter-spacing: -1px; color: var(--sauce); text-transform: uppercase; }
+        /* BIG EMOJIS */
+        .icon-header { font-size: 4.5rem; line-height: 1; margin-bottom: 0px; padding-top: 10px; }
         
-        .player-badge { font-size: 0.8rem; background: #eee; padding: 5px 12px; border-radius: 15px; display: inline-block; margin-bottom: 20px; color: #666; font-weight: bold; }
+        /* SMALLER TITLE */
+        h1 { margin: 5px 0 20px 0; font-size: 1.3rem; letter-spacing: 2px; color: var(--sauce); text-transform: uppercase; font-weight: 900; }
+        
+        .player-badge { font-size: 0.8rem; background: #f5f5f5; padding: 5px 12px; border-radius: 15px; display: inline-block; margin-bottom: 20px; color: #666; font-weight: bold; border: 1px solid #eee; }
         
         .scoreboard { background: #2d2d2d; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
-        .stat-label { font-size: 0.65rem; color: #aaa; text-transform: uppercase; display: block; }
+        .stat-label { font-size: 0.6rem; color: #aaa; text-transform: uppercase; display: block; margin-bottom: 2px; }
         .stat-val { font-size: 1.3rem; font-weight: bold; }
 
-        input { width: 150px; font-size: 2.5rem; text-align: center; border: 3px solid #ddd; border-radius: 12px; margin-bottom: 15px; padding: 5px; outline-color: var(--sauce); }
-        button { width: 100%; padding: 16px; background: var(--sauce); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
+        input { width: 150px; font-size: 2.5rem; text-align: center; border: 3px solid #ddd; border-radius: 12px; margin-bottom: 15px; padding: 5px; outline-color: var(--sauce); font-weight: bold; }
+        button { width: 100%; padding: 16px; background: var(--sauce); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: 0.2s; text-transform: uppercase; }
         button:hover { background: #b71c1c; transform: translateY(-2px); }
         
         .log { margin-top: 25px; text-align: left; background: #fafafa; padding: 15px; border-radius: 10px; height: 180px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 1.1rem; border: 1px solid #eee; }
@@ -34,14 +36,14 @@
         .win-splash { color: #2e7d32; font-weight: 900; animation: bounce 0.5s infinite; }
         .emoji-count { font-weight: bold; letter-spacing: 2px; }
         
-        footer { margin-top: 30px; font-size: 0.7rem; color: #8d6e63; text-align: center; opacity: 0.8; }
+        footer { margin-top: 30px; font-size: 0.7rem; color: #8d6e63; text-align: center; opacity: 0.8; padding-bottom: 20px; }
         @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
     </style>
 </head>
 <body>
 
 <div class="game-container">
-    <div class="icon-header">🍕 🥯 🍩</div>
+    <div class="icon-header">🍕🥯🍩</div>
     <h1>Pizza Bagel Donut</h1>
     
     <div id="player-tag" class="player-badge">Loading Kitchen...</div>
@@ -64,7 +66,7 @@
         Guess the daily 3-digit code in 9 tries.
         <div class="rules-grid">
             <div class="rule-item">🍕 <strong>PIZZA:</strong> Correct number, correct spot.</div>
-            <div class="rule-item">🥯 <strong>BAGEL:</strong> Correct number, wrong spot.</div>
+            <div class="rule-item)🥯 <strong>BAGEL:</strong> Correct number, wrong spot.</div>
             <div class="rule-item">🍩 <strong>DONUT:</strong> Number is not in the code.</div>
         </div>
     </div>
@@ -149,4 +151,40 @@
         if (val === CODE) {
             row.innerHTML = `[${tries}] ${val} → <span class="win-splash">🍕 PIZZA PIZZA PIZZA!</span>`;
             log.prepend(row);
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 }, colors: ['#d32f2f', '#ffeb3b', '#ffffff'] });
+            finish(true);
+        } else {
+            guessArr.forEach((num, i) => {
+                if (num === codeArr[i]) { p++; } 
+                else if (codeArr.includes(num)) { b++; } 
+                else { d++; }
+            });
+            let resultEmojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
+            row.innerHTML = `[${tries}] ${val} → <span class="emoji-count">${resultEmojis}</span>`;
+            log.prepend(row);
+            if (tries >= MAX_TRIES) finish(false);
+        }
+        input.value = "";
+    }
+
+    function finish(isWin) {
+        if (stats.lastDate !== today) {
+            stats.games++;
+            if (isWin) { stats.hits++; sendToBoard(tries); } 
+            else { alert("Shift ended! The secret code was " + CODE); }
+            stats.lastDate = today;
+            localStorage.setItem('pbd_v1_stats', JSON.stringify(stats));
+        }
+        refreshUI();
+    }
+
+    function copyResult() {
+        const text = `🍕🥯🍩 Pizza Bagel Donut\nShift: ${today}\nOrders: ${tries}/${MAX_TRIES}\nResult: PIZZA PIZZA PIZZA! 🍕\n#PizzaBagelDonut`;
+        navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!"));
+    }
+
+    refreshUI();
+    if (stats.lastDate !== today) loadLeaderboard();
+</script>
+</body>
+</html>
