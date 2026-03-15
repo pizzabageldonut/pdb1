@@ -116,20 +116,26 @@
 
 <div class="modal" id="info-modal">
     <div class="modal-content" style="text-align:left;">
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; margin-bottom:5px;">How to Unlock Your Pizza Box!</h2>
-        <p style="font-size:0.85rem; color:#555;">Guess the 3-digit daily code in <strong>6 tries</strong>.</p>
-        <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px; font-size:0.9rem; line-height:1.6;">
-            <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</div>
-            <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</div>
-            <div>🍩 <strong>DONUT:</strong> Wrong digit. Toss it out.</div>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; margin-bottom:5px; text-align:center;">How to Unlock Your Pizza Box!</h2>
+        <p style="font-size:0.85rem; margin-bottom:20px; color:#555; text-align:center;">Guess the 3-digit daily code in <strong>6 tries</strong>.</p>
+        
+        <div style="margin:20px 0; border-top:1px solid #eee; padding-top:10px;">
+            <div class="rule-line"><span>🍕</span> <span><strong>KEEP IT:</strong> Correct digit. Correct position.</span></div>
+            <div class="rule-line"><span>🥯</span> <span><strong>MOVE IT:</strong> Correct digit. Wrong position.</span></div>
+            <div class="rule-line"><span>🍩</span> <span><strong>TOSS IT:</strong> Wrong digit. Not in the code.</span></div>
         </div>
-        <div style="margin:10px 0; border-top:1px solid #eee; padding-top:10px; font-size:0.9rem; line-height:1.6;">
+
             <div>🍕🍕🍕 <strong>3 PIZZAS:</strong> Unlocks the Pizza Box.</div>
+        <div style="background:#f0f0f0; padding:10px; border-radius:4px; font-size:0.75rem; color:#444; line-height:1.4;">
+            <strong>⚠️ PRO TIP:</strong> The emoji sequence does <u>not</u> match your digit order. Feedback is always grouped by 🍕, then 🥯, then 🍩.
         </div>
-        <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:10px;">Start Guessing</button>
+        
+        <p style="font-size: 0.75rem; color: #888; text-align:center; margin-top:15px;"><em>Chef's Tip: All numbers in the code are unique.</em></p>
+        
+        <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:18px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; cursor:pointer; margin-top:15px; text-transform:uppercase; letter-spacing:1px;">Start Shift</button>
     </div>
 </div>
-
+           
 <script>
     const FIREBASE_URL = "https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats.json";
     const today = new Date().toISOString().slice(0, 10);
