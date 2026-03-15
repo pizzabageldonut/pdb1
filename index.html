@@ -235,22 +235,6 @@ function ensureStatsElements() {
         modal.appendChild(container);
     }
 
-    container.innerHTML = `
-        <h3>Your Stats</h3>
-        <div>Played: <span id="s-played">0</span></div>
-        <div>Wins: <span id="s-wins">0</span></div>
-        <div>Win Rate: <span id="s-winrate">0%</span></div>
-        <div>Avg Rows: <span id="s-avg">0</span></div>
-
-        <h3>Global Stats — Today (<span id="g-date">${today}</span>)</h3>
-        <div>Players Today: <span id="g-played">0</span></div>
-        <div>Wins Today: <span id="g-wins">0</span></div>
-        <div>Win Rate: <span id="g-winrate">0%</span></div>
-
-        <div id="dist-chart" style="margin-top:15px;"></div>
-    `;
-}
-
 
 /* -----------------------------
    PAGE LOAD
