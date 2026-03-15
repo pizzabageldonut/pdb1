@@ -153,26 +153,70 @@ function generateDailyCode() {
 const CODE = generateDailyCode();
 let currentInput = "";
 
-// --- LOCAL PLAYER STATS (LIFETIME) ---
-let localStats = JSON.parse(localStorage.getItem("pbd_v20")) || {
-    played: 0,
-    wins: 0,
-    totalRows: 0,
-    lastDate: "",
-    history: []
-};
-
-// --- UNIQUE PLAYER ID (ANTI-SPAM / ONE SUBMISSION PER DAY) ---
-let playerId = localStorage.getItem("pbd_player");
-
-if (!playerId) {
-    if (window.crypto && crypto.randomUUID) {
-        playerId = crypto.randomUUID();
-    } else {
-        playerId = "pbd_" + Math.random().toString(36).slice(2) + Date.now();
+// --- SAFE LOCAL STORAGE HELPERS ---
+function safeGet(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (e) {
+        return null;
     }
-    localStorage.setItem("pbd_player", playerId);
 }
+
+function safeSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+// --- LOCAL PLAYER STATS (LIFETIME) ---
+let localStats;
+try {
+    localStats = JSON.parse(safeGet("pbd_v21")) || {
+        played: 0,
+        wins: 0,
+        totalRows: 0,
+        lastDate: "",
+        history: []
+    };
+} catch (e) {
+    localStats = {
+        played: 0,
+        wins: 0,
+        totalRows: 0,
+        lastDate: "",
+        history: []
+    };
+}
+
+// --- LOCAL PLAYER ID ---
+function createPlayerId() {
+    if (window.crypto && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return "pbd_" + Math.random().toString(36).slice(2) + "_" + Date.now();
+}
+
+function getPlayerId() {
+    let existing = safeGet("pbd_player");
+    if (existing) return existing;
+
+    const newId = createPlayerId();
+    const saved = safeSet("pbd_player", newId);
+
+    if (saved) {
+        const verify = safeGet("pbd_player");
+        if (verify) return verify;
+    }
+
+    // fallback for storage-blocked environments
+    return newId;
+}
+
+const playerId = getPlayerId();
+console.log("playerId:", playerId);
 
 
 /* -----------------------------
@@ -311,9 +355,8 @@ async function submitGuess() {
         }
 
         localStats.lastDate = today;
-        localStorage.setItem("pbd_v20", JSON.stringify(localStats));
+        safeSet("pbd_v21", JSON.stringify(localStats));
 
-        // record this player's completed game once for today
         await syncGlobalData({
             win: win,
             rows: rowsUsed,
@@ -337,18 +380,16 @@ async function syncGlobalData(game) {
     const playerPath = `${FIREBASE_BASE}/stats/${today}/${playerId}.json`;
 
     try {
-        // check if this player already submitted today
         const res = await fetch(`${playerPath}?t=${Date.now()}`, {
             cache: "no-store"
         });
         const existing = await res.json();
 
         if (existing) {
-            console.log("Stats already submitted today");
+            console.log("Stats already submitted today for player:", playerId);
             return;
         }
 
-        // write once under stable player key
         await fetch(playerPath, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -375,7 +416,6 @@ async function fetchAndRenderGlobal() {
         });
         const data = await res.json();
 
-        // 0-5 => wins in 1-6 guesses, 6 => losses
         const dist = [0, 0, 0, 0, 0, 0, 0];
         let totalPlayed = 0;
         let totalWins = 0;
