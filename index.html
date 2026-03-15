@@ -124,9 +124,10 @@
     </div>
 </div>
 
+
 <script>
-    const FIREBASE_URL = "https://pizzabageldonut-default-rtdb.firebaseio.com/stats.json";
     const today = new Date().toISOString().slice(0, 10);
+    const FIREBASE_URL = `https://pizzabageldonut-default-rtdb.firebaseio.com/stats/${today}.json`;
     
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
@@ -140,10 +141,7 @@
     
     const CODE = generateDailyCode();
     let currentInput = "", tries = 0;
-    // Local storage keeps track of your personal streak and today's state
     let localStats = JSON.parse(localStorage.getItem('pbd_v8')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
-
-    window.onload = () => { if (localStats.lastDate === today) toggleModal('info-modal', false); };
 
     function handlePress(val) {
         if (localStats.lastDate === today) return;
@@ -186,17 +184,15 @@
         currentInput = ""; updateDisplay();
     }
 
-    // UPDATED: Global stats now fetch existing totals and add the new win
     async function updateGlobalStats(rowNum) {
         try {
             const res = await fetch(FIREBASE_URL);
-            const data = await res.json() || { dist: [0,0,0,0,0,0] };
-            if(!data.dist) data.dist = [0,0,0,0,0,0];
-            
-            data.dist[rowNum - 1]++; // Add to the historical record
-            
+            let data = await res.json() || { dist: [0, 0, 0, 0, 0, 0] };
+            if(!data.dist) data.dist = [0, 0, 0, 0, 0, 0];
+            data.dist[rowNum - 1]++;
             await fetch(FIREBASE_URL, { 
                 method: 'PATCH', 
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ dist: data.dist }) 
             });
         } catch (e) { console.error(e); }
@@ -206,7 +202,7 @@
         try {
             const res = await fetch(FIREBASE_URL);
             const data = await res.json();
-            return data.dist || [0,0,0,0,0,0];
+            return data && data.dist ? data.dist : [0,0,0,0,0,0];
         } catch (e) { return [0,0,0,0,0,0]; }
     }
 
@@ -233,8 +229,10 @@
     async function toggleModal(id, s) { 
         document.getElementById(id).style.display = s ? 'block' : 'none';
         if (id === 'stats-modal') {
+            const winPct = localStats.played === 0 ? 0 : Math.round((localStats.wins / localStats.played) * 100);
+            document.getElementById('s-win-pct').innerText = winPct + "%";
             document.getElementById('s-played').innerText = localStats.played;
-            document.getElementById('s-unboxed').innerText = localStats.wins;
+            document.getElementById('s-wins').innerText = localStats.wins;
             document.getElementById('s-avg').innerText = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
             
             const globalDist = await fetchGlobalStats();
@@ -251,7 +249,7 @@
     function share() {
         const win = localStats.history.some(h => h.e === "🍕🍕🍕");
         const emojiGrid = localStats.history.map(h => h.e).join('\n');
-        const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nPlayed: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
+        const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nDate: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
         if (navigator.share) { navigator.share({ text: text }).catch(() => navigator.clipboard.writeText(text)); } 
         else { navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!")); }
     }
