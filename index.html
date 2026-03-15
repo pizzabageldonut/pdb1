@@ -34,7 +34,8 @@
         .stat-lbl { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; color: #787c7e; }
         .dist-container { text-align: left; margin-top: 20px; }
         .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 0.8rem; font-weight: 700; }
-        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 25px; text-align: right; transition: width 0.5s ease-out; }
+        /* Cleaned up bar styles for no-number look */
+        .dist-bar { background: #787c7e; height: 18px; border-radius: 2px; min-width: 4px; transition: width 0.5s ease-out; }
     </style>
 </head>
 <body>
@@ -94,9 +95,9 @@
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; margin-bottom:5px;">How to Unlock Your Pizza Box!</h2>
         <p style="font-size:0.85rem; color:#555;">Guess the 3-digit daily code in 9 tries.</p>
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px; font-size:0.9rem; line-height:1.6;">
-            <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</span></div>
-            <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</span></div>
-            <div>🍩 <strong>DONUT:</strong> Wrong digit. Toss it out.</span></div>
+            <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</div>
+            <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</div>
+            <div>🍩 <strong>DONUT:</strong> Wrong digit. Toss it out.</div>
         </div>
         <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase;">Start Guessing</button>
     </div>
@@ -195,7 +196,7 @@
         document.getElementById('input-boxes').style.display = 'none';
         const msg = document.getElementById('end-msg');
         msg.style.display = 'block';
-        msg.innerText = win ? "YOU WIN! 🍕🍕🍕" : "SORRY! TODAY'S CODE: " + CODE;
+        msg.innerText = win ? "PIZZA BOX OPENED! 🍕" : "KITCHEN CLOSED! CODE: " + CODE;
         document.getElementById('share-icon').style.opacity = "1";
         document.getElementById('share-icon').style.pointerEvents = "auto";
     }
@@ -212,8 +213,9 @@
             chart.innerHTML = "";
             const max = Math.max(...globalDist, 1);
             globalDist.forEach((count, i) => {
-                const width = Math.max((count / max) * 100, 7);
-                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar" style="width:${width}%">${count}</div></div>`;
+                const width = Math.max((count / max) * 100, 4);
+                // Removed `${count}` from the dist-bar div to hide numbers
+                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar" style="width:${width}%"></div></div>`;
             });
         }
     }
