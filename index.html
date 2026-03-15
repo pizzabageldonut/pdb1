@@ -185,26 +185,30 @@
         currentInput = ""; updateDisplay();
     }
 
-    async function updateGlobalStats(rowNum) {
+   async function updateGlobalStats(rowNum) {
+        if (!FIREBASE_URL || FIREBASE_URL.includes("YOUR_URL")) return;
         try {
+            // 1. Fetch current data
             const res = await fetch(FIREBASE_URL);
-            let data = await res.json() || { dist: [0, 0, 0, 0, 0, 0] };
-            if(!data.dist) data.dist = [0, 0, 0, 0, 0, 0];
+            let data = await res.json();
+            
+            // 2. If database is empty, initialize it
+            if (!data || !data.dist) {
+                data = { dist: [0, 0, 0, 0, 0, 0] };
+            }
+            
+            // 3. Increment the specific row
             data.dist[rowNum - 1]++;
-            await fetch(FIREBASE_URL, { 
-                method: 'PATCH', 
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ dist: data.dist }) 
+            
+            // 4. Send ONLY the updated distribution back
+            await fetch(FIREBASE_URL, {
+                method: 'PUT', // Using PUT ensures we overwrite the old array with the new one
+                body: JSON.stringify(data)
             });
-        } catch (e) { console.error(e); }
-    }
-
-    async function fetchGlobalStats() {
-        try {
-            const res = await fetch(FIREBASE_URL);
-            const data = await res.json();
-            return data && data.dist ? data.dist : [0,0,0,0,0,0];
-        } catch (e) { return [0,0,0,0,0,0]; }
+            console.log("Global order logged!");
+        } catch (e) { 
+            console.error("Kitchen log error:", e); 
+        }
     }
 
     function renderRow(g, e) {
