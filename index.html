@@ -144,7 +144,7 @@ function generateDailyCode() {
     let res = "";
 
     for (let i = 0; i < 3; i++) {
-        let idx = (seed + (i * 17)) % pool.length;
+        const idx = (seed + (i * 17)) % pool.length;
         res += pool.splice(idx, 1);
     }
     return res;
@@ -174,7 +174,7 @@ function safeSet(key, value) {
 // --- LOCAL PLAYER STATS (LIFETIME) ---
 let localStats;
 try {
-    localStats = JSON.parse(safeGet("pbd_v21")) || {
+    localStats = JSON.parse(safeGet("pbd_v23")) || {
         played: 0,
         wins: 0,
         totalRows: 0,
@@ -200,7 +200,7 @@ function createPlayerId() {
 }
 
 function getPlayerId() {
-    let existing = safeGet("pbd_player");
+    const existing = safeGet("pbd_player");
     if (existing) return existing;
 
     const newId = createPlayerId();
@@ -211,16 +211,15 @@ function getPlayerId() {
         if (verify) return verify;
     }
 
-    // fallback for storage-blocked environments
     return newId;
 }
 
 const playerId = getPlayerId();
-console.log("playerId:", playerId);
 
 
 /* -----------------------------
-   STATS UI AUTO-CREATION
+   STATS MODAL CONTENT
+   (ONLY INSIDE THE MODAL)
 ------------------------------ */
 
 function ensureStatsElements() {
@@ -236,16 +235,18 @@ function ensureStatsElements() {
     }
 
     container.innerHTML = `
-        <h3>Your Stats</h3>
-        <div>Played: <span id="s-played">0</span></div>
-        <div>Wins: <span id="s-wins">0</span></div>
-        <div>Win Rate: <span id="s-winrate">0%</span></div>
-        <div>Avg Rows: <span id="s-avg">0</span></div>
+        <div class="stats-block">
+            <div>Played: <span id="s-played">0</span></div>
+            <div>Wins: <span id="s-wins">0</span></div>
+            <div>Win Rate: <span id="s-winrate">0%</span></div>
+            <div>Avg Rows: <span id="s-avg">0</span></div>
+        </div>
 
-        <h3>Global Stats — Today (<span id="g-date">${today}</span>)</h3>
-        <div>Players Today: <span id="g-played">0</span></div>
-        <div>Wins Today: <span id="g-wins">0</span></div>
-        <div>Win Rate: <span id="g-winrate">0%</span></div>
+        <div class="stats-block" style="margin-top:16px;">
+            <div>Players: <span id="g-played">0</span></div>
+            <div>Wins: <span id="g-wins">0</span></div>
+            <div>Win Rate: <span id="g-winrate">0%</span></div>
+        </div>
 
         <div id="dist-chart" style="margin-top:15px;"></div>
     `;
@@ -257,8 +258,6 @@ function ensureStatsElements() {
 ------------------------------ */
 
 window.onload = () => {
-    ensureStatsElements();
-
     if (localStats.lastDate === today) {
         toggleModal("info-modal", false);
         localStats.history.forEach(h => renderRow(h.g, h.e));
@@ -268,7 +267,7 @@ window.onload = () => {
 
 
 /* -----------------------------
-   MODAL
+   MODAL / START
 ------------------------------ */
 
 async function toggleModal(id, show) {
@@ -279,6 +278,20 @@ async function toggleModal(id, show) {
         ensureStatsElements();
         updateStatsUI();
         await fetchAndRenderGlobal();
+    }
+}
+
+function startGame() {
+    toggleModal("info-modal", false);
+
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+
+    if (localStats.lastDate !== today) {
+        if (keyboard) keyboard.style.display = "";
+        if (inputBoxes) inputBoxes.style.display = "";
+        if (endMsg) endMsg.style.display = "none";
     }
 }
 
@@ -321,8 +334,8 @@ async function submitGuess() {
     if (currentInput.length !== 3) return;
 
     let p = 0, b = 0, d = 0;
-    let gArr = currentInput.split("");
-    let cArr = CODE.split("");
+    const gArr = currentInput.split("");
+    const cArr = CODE.split("");
 
     gArr.forEach((n, i) => {
         if (n === cArr[i]) p++;
@@ -355,7 +368,7 @@ async function submitGuess() {
         }
 
         localStats.lastDate = today;
-        safeSet("pbd_v21", JSON.stringify(localStats));
+        safeSet("pbd_v23", JSON.stringify(localStats));
 
         await syncGlobalData({
             win: win,
@@ -386,7 +399,6 @@ async function syncGlobalData(game) {
         const existing = await res.json();
 
         if (existing) {
-            console.log("Stats already submitted today for player:", playerId);
             return;
         }
 
@@ -452,7 +464,6 @@ async function fetchAndRenderGlobal() {
         const gPlayed = document.getElementById("g-played");
         const gWins = document.getElementById("g-wins");
         const gWinrate = document.getElementById("g-winrate");
-        const gDate = document.getElementById("g-date");
 
         if (gPlayed) gPlayed.innerText = totalPlayed;
         if (gWins) gWins.innerText = totalWins;
@@ -461,7 +472,6 @@ async function fetchAndRenderGlobal() {
                 ? "0%"
                 : `${Math.round((totalWins / totalPlayed) * 100)}%`;
         }
-        if (gDate) gDate.innerText = today;
 
     } catch (e) {
         console.error("Global stats read error:", e);
@@ -534,7 +544,7 @@ function showEnd(win) {
         msg.style.display = "block";
         msg.innerText = win
             ? "You Win 🍕🍕🍕"
-            : "KITCHEN CLOSED! CODE: " + CODE;
+            : "SORRY! TODAY'S CODE: " + CODE;
     }
 
     if (shareBtn) {
