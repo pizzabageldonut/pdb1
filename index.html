@@ -123,11 +123,10 @@
 </div>
 
 <script>
-    // 1. Define constants once
-    const FIREBASE_URL = "https://pizzabageldonut-default-rtdb.firebaseio.com/stats.json";
+    // 1. DATABASE CONFIG - Must end in .json
+    const FIREBASE_URL = "https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats.json";
     const today = new Date().toISOString().slice(0, 10);
     
-    // 2. Daily Code Logic
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
         let pool = [0,1,2,3,4,5,6,7,8,9], res = "";
@@ -140,22 +139,29 @@
     
     const CODE = generateDailyCode();
     let currentInput = "";
-    // Change the version (pbd_v15) to force a fresh start and fix local data errors
-    let localStats = JSON.parse(localStorage.getItem('pbd_v15')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
+    // Using v16 to ensure fresh local storage sync with your new DB
+    let localStats = JSON.parse(localStorage.getItem('pbd_v16')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
-    // 3. The Modal Fix (Crucial for the Start button)
-    async function toggleModal(id, show) { 
+    window.onload = () => { 
+        if (localStats.lastDate === today) {
+            toggleModal('info-modal', false);
+            localStats.history.forEach(h => renderRow(h.g, h.e));
+            showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+        }
+    };
+
+    // --- MODAL LOGIC ---
+    async function toggleModal(id, s) { 
         const modal = document.getElementById(id);
-        if (modal) modal.style.display = show ? 'block' : 'none';
+        if (modal) modal.style.display = s ? 'block' : 'none';
         
-        // Load stats only when opening the stats modal
-        if (id === 'stats-modal' && show) {
+        if (id === 'stats-modal' && s) {
             updateStatsUI();
-            await loadGlobalStats();
+            await fetchAndRenderGlobal();
         }
     }
 
-    // 4. Input & Game Logic
+    // --- INPUT LOGIC ---
     function handlePress(val) {
         if (localStats.lastDate === today) return;
         if (val === 'DEL') currentInput = currentInput.slice(0, -1);
@@ -172,6 +178,7 @@
         }
     }
 
+    // --- GAME LOGIC ---
     async function submitGuess() {
         let p=0, b=0, d=0;
         let gArr = currentInput.split(''), cArr = CODE.split('');
@@ -191,46 +198,64 @@
                 await syncGlobalData(localStats.history.length);
             }
             localStats.lastDate = today;
-            localStorage.setItem('pbd_v15', JSON.stringify(localStats));
+            localStorage.setItem('pbd_v16', JSON.stringify(localStats));
             showEnd(isWin);
         }
         currentInput = ""; updateDisplay();
     }
 
-    // 5. Global Stats Logic (The "PUT" fix)
+    // --- FIREBASE SYNC LOGIC ---
     async function syncGlobalData(rowNum) {
         try {
+            // Fetch current state
             const res = await fetch(FIREBASE_URL);
             let data = await res.json();
-            if (!data || !data.dist) data = { dist: [0, 0, 0, 0, 0, 0] };
+            
+            // Initialize if first time
+            if (!data || !data.dist) {
+                data = { dist: [0, 0, 0, 0, 0, 0] };
+            }
+            
+            // Increment the row
             data.dist[rowNum - 1] = (data.dist[rowNum - 1] || 0) + 1;
             
+            // Save to Firebase
             await fetch(FIREBASE_URL, {
                 method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
             });
-        } catch (e) { console.error("Global Sync Error:", e); }
+        } catch (e) {
+            console.error("Database Write Error:", e);
+        }
     }
 
-    async function loadGlobalStats() {
+    async function fetchAndRenderGlobal() {
         const chart = document.getElementById('dist-chart');
         try {
             const res = await fetch(`${FIREBASE_URL}?t=${Date.now()}`);
             const data = await res.json();
             const dist = (data && data.dist) ? data.dist : [0,0,0,0,0,0];
             const maxVal = Math.max(...dist, 1);
-            chart.innerHTML = dist.map((count, i) => `
+            
+            chart.innerHTML = dist.map((count, i) => {
+                const width = Math.max((count/maxVal)*100, 8);
+                return `
                 <div class="dist-row">
                     <span>${i+1}</span>
-                    <div class="dist-bar" style="width:${Math.max((count/maxVal)*100, 8)}%">${count}</div>
-                </div>`).join('');
-        } catch(e) { chart.innerText = "Stats unavailable"; }
+                    <div class="dist-bar" style="width:${width}%">${count}</div>
+                </div>`;
+            }).join('');
+        } catch(e) { 
+            chart.innerText = "Global stats currently unavailable"; 
+        }
     }
 
     function updateStatsUI() {
         document.getElementById('s-played').innerText = localStats.played;
         document.getElementById('s-wins').innerText = localStats.wins;
-        document.getElementById('s-avg').innerText = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
+        const avg = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
+        document.getElementById('s-avg').innerText = avg;
     }
 
     function renderRow(g, e) {
@@ -257,17 +282,12 @@
         const win = localStats.history.some(h => h.e === "🍕🍕🍕");
         const emojiGrid = localStats.history.map(h => h.e).join('\n');
         const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nPlayed: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
-        if (navigator.share) { navigator.share({ text: text }); } 
-        else { navigator.clipboard.writeText(text).then(() => alert("Copied!")); }
-    }
-
-    window.onload = () => { 
-        if (localStats.lastDate === today) {
-            toggleModal('info-modal', false);
-            localStats.history.forEach(h => renderRow(h.g, h.e));
-            showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+        if (navigator.share) { 
+            navigator.share({ text: text }).catch(() => navigator.clipboard.writeText(text)); 
+        } else { 
+            navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!")); 
         }
-    };
+    }
 </script>
 </body>
 </html>
