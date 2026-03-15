@@ -11,45 +11,39 @@
         header { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); background: var(--pizzabg); flex-shrink: 0; }
         .logo-emoji-hero { font-size: 2.2rem; letter-spacing: 12px; margin-bottom: 4px; padding-left: 12px; }
         h4 { font-size: 0.9rem; letter-spacing: 4px; color: var(--sauce); text-transform: uppercase; margin: 0; font-weight: 900; }
-        
         #game { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; overflow: hidden; }
         #guess-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 15px; align-items: center; }
         .guess-row { display: grid; grid-template-columns: 1fr 1.2fr; align-items: center; padding: 10px 15px; background: #fff; border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 240px; box-sizing: border-box; }
         .guess-code { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 800; letter-spacing: 4px; }
         .guess-emojis { display: flex; justify-content: flex-end; font-size: 1.1rem; }
         .guess-row.winner { background-color: var(--pizzabox); border-color: #c99b5a; color: #fff; }
-
         .controls-area { background: var(--pizzabg); border-top: 1px solid var(--border); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
         .input-display-area { display: flex; justify-content: center; gap: 10px; padding: 10px 0; background: #fff; border-bottom: 1px solid var(--border); }
         .digit-box { width: 38px; height: 42px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--sauce); }
         .digit-box.filled { border-color: var(--sauce); }
-
         .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
         .key-row { display: flex; gap: 5px; width: 100%; }
-        .key { flex: 1; height: 46px; background: var(--key); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none; touch-action: manipulation; }
+        .key { flex: 1; height: 46px; background: var(--key); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
         .key.action { background: #c5c5c3; font-size: 0.7rem; letter-spacing: 0.5px; flex: 2; }
-
         .toolbar { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
         .tool-btn { font-size: 1.5rem; cursor: pointer; opacity: 0.8; }
-
-        /* STATS MODAL & DISTRIBUTION */
         .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 20px; box-sizing: border-box; overflow-y: auto; }
         .modal-content { max-width: 400px; margin: 0 auto; text-align: center; }
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
         .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--sauce); display: block; }
         .stat-lbl { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; color: #787c7e; }
-        
         .dist-container { text-align: left; margin-top: 20px; }
         .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 5px; font-size: 0.8rem; font-weight: 700; }
-        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 20px; text-align: right; }
-        .dist-bar.highlight { background: var(--sauce); }
+        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 25px; text-align: right; transition: width 0.5s ease-out; }
     </style>
 </head>
 <body>
 
 <header>
-    <span class="logo-emoji-hero">🍕🥯🍩</span>
-    <h4>PIZZA BAGEL DONUT</h4>
+    <div class="logo-wrapper">
+        <span class="logo-emoji-hero">🍕🥯🍩</span>
+        <h4>PIZZA BAGEL DONUT</h4>
+    </div>
 </header>
 
 <div id="game">
@@ -81,48 +75,40 @@
 
 <div class="modal" id="stats-modal">
     <div class="modal-content">
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Your Stats</h2>
         <div class="stats-grid">
             <div><span class="stat-val" id="s-played">0</span><span class="stat-lbl">Played</span></div>
             <div><span class="stat-val" id="s-unboxed">0</span><span class="stat-lbl">Unboxed</span></div>
             <div><span class="stat-val" id="s-avg">0</span><span class="stat-lbl">Avg Row</span></div>
         </div>
-        
         <div class="dist-container">
-            <h3 style="font-size:0.7rem; text-transform:uppercase; margin-bottom:10px;">Global Guess Distribution</h3>
-            <div id="dist-chart"></div>
+            <h3 style="font-size:0.7rem; text-transform:uppercase; margin-bottom:10px; color:var(--sauce)">Global Distribution (All Chefs)</h3>
+            <div id="dist-chart">Loading history...</div>
         </div>
-        
         <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:15px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:25px;">Close</button>
     </div>
 </div>
 
 <div class="modal" id="info-modal">
     <div class="modal-content" style="text-align:left;">
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1rem;">How to Unlock Your Pizza Box!</h2>
-        <p style="font-size:0.85rem; color:#555;">Guess the 3-digit code in 9 tries.</p>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; margin-bottom:5px;">How to Unlock Your Pizza Box!</h2>
+        <p style="font-size:0.85rem; color:#555;">Guess the 3-digit daily code in 9 tries.</p>
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px; font-size:0.9rem; line-height:1.6;">
-            <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</div>
-            <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</div>
-            <div>🍩 <strong>DONUT:</strong> Wrong digit. Toss it out.</div>
+            <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</span></div>
+            <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</span></div>
+            <div>🍩 <strong>DONUT:</strong> Wrong digit. Toss it out.</span></div>
         </div>
-        <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase;">Start Shift</button>
+        <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase;">Start Unboxing</button>
     </div>
 </div>
 
 <script>
+    const FIREBASE_URL = "https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats.json";
+
     const today = new Date().toISOString().slice(0, 10);
     const CODE = generateCode();
     let currentInput = "", tries = 0;
-    // Enhanced Stats Logic
-    let stats = JSON.parse(localStorage.getItem('pbd_stats_v2')) || { 
-        played: 0, 
-        unboxed: 0, 
-        totalRows: 0,
-        dist: [0,0,0,0,0,0,0,0,0], // Rows 1-9
-        lastDate: "", 
-        history: [] 
-    };
+    let localStats = JSON.parse(localStorage.getItem('pbd_stats_local')) || { played: 0, unboxed: 0, totalRows: 0, lastDate: "", history: [] };
 
     function generateCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
@@ -135,7 +121,7 @@
     }
 
     function press(val) {
-        if (stats.lastDate === today) return;
+        if (localStats.lastDate === today) return;
         if (val === 'DEL') currentInput = currentInput.slice(0, -1);
         else if (val === 'ENT' && currentInput.length === 3) submitGuess();
         else if (currentInput.length < 3 && !currentInput.includes(val)) currentInput += val;
@@ -150,28 +136,49 @@
         }
     }
 
-    function submitGuess() {
+    async function submitGuess() {
         tries++;
         let p=0, b=0, d=0;
         let gArr = currentInput.split(''), cArr = CODE.split('');
         gArr.forEach((n, i) => { if (n === cArr[i]) p++; else if (cArr.includes(n)) b++; else d++; });
         const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
         renderRow(currentInput, emojis);
-        stats.history.push({g: currentInput, e: emojis});
+        localStats.history.push({g: currentInput, e: emojis});
         
         if (currentInput === CODE || tries >= 9) {
-            stats.played++;
+            localStats.played++;
             if (currentInput === CODE) { 
-                stats.unboxed++; 
-                stats.totalRows += tries;
-                stats.dist[tries-1]++;
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); 
+                localStats.unboxed++; 
+                localStats.totalRows += tries;
+                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+                await updateGlobalStats(tries);
             }
-            stats.lastDate = today;
-            localStorage.setItem('pbd_stats_v2', JSON.stringify(stats));
+            localStats.lastDate = today;
+            localStorage.setItem('pbd_stats_local', JSON.stringify(localStats));
             showEnd(currentInput === CODE);
         }
         currentInput = ""; updateDisplay();
+    }
+
+    async function updateGlobalStats(rowNum) {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json() || { dist: [0,0,0,0,0,0,0,0,0] };
+            if(!data.dist) data.dist = [0,0,0,0,0,0,0,0,0];
+            data.dist[rowNum - 1]++;
+            await fetch(FIREBASE_URL, {
+                method: 'PATCH',
+                body: JSON.stringify({ dist: data.dist })
+            });
+        } catch (e) { console.error("Database connection issue", e); }
+    }
+
+    async function fetchGlobalStats() {
+        try {
+            const res = await fetch(FIREBASE_URL);
+            const data = await res.json();
+            return data.dist || [0,0,0,0,0,0,0,0,0];
+        } catch (e) { return [0,0,0,0,0,0,0,0,0]; }
     }
 
     function renderRow(g, e) {
@@ -188,40 +195,40 @@
         document.getElementById('input-boxes').style.display = 'none';
         const msg = document.getElementById('end-msg');
         msg.style.display = 'block';
-        msg.innerText = win ? "PIZZA BOX OPENED! 🍕" : "KITCHEN CLOSED! CODE: " + CODE;
+        msg.innerText = win ? "YOU WIN! 🍕🍕🍕" : "SORRY! TODAY'S CODE: " + CODE;
         document.getElementById('share-icon').style.opacity = "1";
         document.getElementById('share-icon').style.pointerEvents = "auto";
     }
 
-    function toggleModal(id, s) { 
+    async function toggleModal(id, s) { 
         document.getElementById(id).style.display = s ? 'block' : 'none';
         if (id === 'stats-modal') {
-            document.getElementById('s-played').innerText = stats.played;
-            document.getElementById('s-unboxed').innerText = stats.unboxed;
-            const avg = stats.unboxed === 0 ? 0 : (stats.totalRows / stats.unboxed).toFixed(1);
-            document.getElementById('s-avg').innerText = avg;
+            document.getElementById('s-played').innerText = localStats.played;
+            document.getElementById('s-unboxed').innerText = localStats.unboxed;
+            document.getElementById('s-avg').innerText = localStats.unboxed === 0 ? 0 : (localStats.totalRows / localStats.unboxed).toFixed(1);
             
-            // Build Chart
+            const globalDist = await fetchGlobalStats();
             const chart = document.getElementById('dist-chart');
             chart.innerHTML = "";
-            const max = Math.max(...stats.dist, 1);
-            stats.dist.forEach((count, i) => {
-                const width = Math.max((count / max) * 100, 5);
-                const isCurrent = (stats.lastDate === today && stats.history.length === i+1 && stats.history[i].e === "🍕🍕🍕");
-                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar ${isCurrent ? 'highlight' : ''}" style="width:${width}%">${count}</div></div>`;
+            const max = Math.max(...globalDist, 1);
+            globalDist.forEach((count, i) => {
+                const width = Math.max((count / max) * 100, 7);
+                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar" style="width:${width}%">${count}</div></div>`;
             });
         }
     }
     
     function share() {
-        const win = stats.history.some(h => h.e === "🍕🍕🍕");
-        const text = `🍕🥯🍩 Pizza Bagel Donut\nShift: ${today}\nScore: ${win ? stats.history.length : 'X'}/9\n#PizzaBagelDonut`;
-        navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!"));
+        const win = localStats.history.some(h => h.e === "🍕🍕🍕");
+        const emojiLines = localStats.history.map(h => h.e).join('\n');
+        const scoreLine = win ? `${localStats.history.length}/9` : 'X/9';
+        const text = `🍕🥯🍩 Pizza Bagel Donut\nShift: ${today}\nScore: ${scoreLine}\n\n${emojiLines}\n\n#PizzaBagelDonut`;
+        navigator.clipboard.writeText(text).then(() => alert("Spoiler-free box score copied!"));
     }
 
-    if (stats.lastDate === today) {
-        stats.history.forEach(h => renderRow(h.g, h.e));
-        showEnd(stats.history.some(h => h.e === "🍕🍕🍕"));
+    if (localStats.lastDate === today) {
+        localStats.history.forEach(h => renderRow(h.g, h.e));
+        showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
     }
 </script>
 </body>
