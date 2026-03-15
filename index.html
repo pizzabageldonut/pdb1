@@ -55,6 +55,29 @@
             font-weight: 900;
         }
 
+        .difficulty-wrap {
+            margin-top: 8px;
+            display: flex;
+            gap: 8px;
+        }
+
+        .diff-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            font-weight: 700;
+            border: 1px solid var(--border);
+            background: white;
+            border-radius: 999px;
+            cursor: pointer;
+            color: var(--text);
+        }
+
+        .diff-btn.active {
+            background: var(--sauce);
+            color: white;
+            border-color: var(--sauce);
+        }
+
         #game {
             flex: 1;
             display: flex;
@@ -85,13 +108,13 @@
             border: 1px solid var(--border);
             border-radius: 4px;
             width: 100%;
-            max-width: 240px;
+            max-width: 300px;
             box-sizing: border-box;
         }
 
         .guess-code {
             font-family: 'Courier New', monospace;
-            font-size: 1.3rem;
+            font-size: 1.15rem;
             font-weight: 800;
             letter-spacing: 4px;
         }
@@ -99,7 +122,9 @@
         .guess-emojis {
             display: flex;
             justify-content: flex-end;
-            font-size: 1.1rem;
+            font-size: 1.05rem;
+            flex-wrap: wrap;
+            gap: 2px;
         }
 
         .guess-row.winner {
@@ -123,6 +148,8 @@
             padding: 10px 0;
             background: #fff;
             border-bottom: 1px solid var(--border);
+            min-height: 62px;
+            box-sizing: border-box;
         }
 
         .digit-box {
@@ -236,6 +263,11 @@
             font-weight: 700;
         }
 
+        .dist-row span {
+            width: 16px;
+            text-align: center;
+        }
+
         .dist-bar {
             background: #787c7e;
             color: white;
@@ -307,6 +339,21 @@
         #stats-container {
             width: 100%;
         }
+
+        @media (max-width: 420px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 70px);
+            }
+
+            .guess-row {
+                max-width: 260px;
+            }
+
+            .guess-code {
+                font-size: 1rem;
+                letter-spacing: 3px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -314,19 +361,20 @@
 <header>
     <span class="logo-emoji-hero">🍕🥯🍩</span>
     <h4>PIZZA BAGEL DONUT</h4>
+    <div class="difficulty-wrap">
+        <button class="diff-btn active" id="easy-btn" onclick="setDifficulty(3)">Easy</button>
+        <button class="diff-btn" id="medium-btn" onclick="setDifficulty(4)">Medium</button>
+        <button class="diff-btn" id="hard-btn" onclick="setDifficulty(5)">Hard</button>
+    </div>
 </header>
 
 <div id="game">
     <div id="guess-log"></div>
 
     <div class="controls-area">
-        <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom: 1px solid var(--border);"></div>
+        <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom:1px solid var(--border);"></div>
 
-        <div class="input-display-area" id="input-boxes">
-            <div class="digit-box" id="d0"></div>
-            <div class="digit-box" id="d1"></div>
-            <div class="digit-box" id="d2"></div>
-        </div>
+        <div class="input-display-area" id="input-boxes"></div>
 
         <div class="keypad-area" id="keyboard">
             <div class="key-row">
@@ -357,29 +405,30 @@
     </div>
 </div>
 
-<div class="modal" id="info-modal" style="display: block;">
+<div class="modal" id="info-modal" style="display:block;">
     <div class="modal-content" style="text-align:left;">
         <p style="text-align:center; font-size:1.2rem; margin-bottom:10px;">🍕 🥯 🍩</p>
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
         <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
         <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">
-            The goal is to guess a hidden 3-number code to open the Pizza Box in <strong>6 tries</strong>.
-            After each guess, you will receive three clues:
+            Guess the hidden code in <strong>6 tries</strong>. Easy uses 3 digits, Medium uses 4, and Hard uses 5.
+            After each guess, you will receive clues:
         </p>
 
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px;">
-            <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> One number is correct and in the right spot.</span></div>
-            <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> One number is correct, but in the wrong spot.</span></div>
-            <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> One number is wrong (it is not in the code at all).</span></div>
+            <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> A number is correct and in the right spot.</span></div>
+            <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> A number is correct, but in the wrong spot.</span></div>
+            <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> A number is not in the code at all.</span></div>
         </div>
 
         <div style="background:#f0f0f0; padding:12px; border-radius:4px; font-size:0.8rem; color:#1a1a1a; line-height:1.4; margin-bottom:15px; border-left:4px solid var(--sauce);">
             <p style="margin:0 0 5px 0; font-weight:800;">⚠️ The Shuffled Clue Rule</p>
-            The clues (Pizza, Bagel, Donut) <strong>DO NOT</strong> match the order of your numbers.<br><br>
-            <em><strong>Example:</strong> If you guess 1-2-3 and the clue is "Pizza," it doesn't mean the number 1 is the Pizza. It just means one of those three numbers is in the right spot!</em>
+            The clues do <strong>not</strong> match the order of your numbers. They only tell you how many of each clue you earned.
         </div>
 
-        <p style="font-size: 0.75rem; color: #888; text-align:center; margin-bottom:15px;"><em>All numbers in the code are unique.</em></p>
+        <p style="font-size:0.75rem; color:#888; text-align:center; margin-bottom:15px;">
+            <em>All numbers in the code are unique.</em>
+        </p>
 
         <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">
             Start
@@ -398,37 +447,41 @@
 </div>
 
 <script>
-/* -----------------------------
-   PIZZA BAGEL DONUT GAME LOGIC
------------------------------- */
-
-// --- LOCAL DATE (prevents UTC rollover issues) ---
 const now = new Date();
 const today =
     now.getFullYear() + "-" +
     String(now.getMonth() + 1).padStart(2, "0") + "-" +
     String(now.getDate()).padStart(2, "0");
 
-// --- FIREBASE PATH (TODAY ONLY) ---
 const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
-const STATS_URL = `${FIREBASE_BASE}/stats/${today}.json`;
+
+let DIGITS = parseInt(localStorage.getItem("pbd_digits"), 10) || 3;
+let currentInput = "";
+
+function difficultyKey() {
+    if (DIGITS === 3) return "easy";
+    if (DIGITS === 4) return "medium";
+    return "hard";
+}
+
+function getStatsUrl() {
+    return `${FIREBASE_BASE}/stats/${today}/${difficultyKey()}.json`;
+}
 
 function generateDailyCode() {
-    const seed = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0);
+    const seedBase = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0) + DIGITS * 31;
     let pool = [0,1,2,3,4,5,6,7,8,9];
     let res = "";
 
-    for (let i = 0; i < 3; i++) {
-        const idx = (seed + (i * 17)) % pool.length;
+    for (let i = 0; i < DIGITS; i++) {
+        const idx = (seedBase + (i * 17)) % pool.length;
         res += pool.splice(idx, 1);
     }
     return res;
 }
 
-const CODE = generateDailyCode();
-let currentInput = "";
+let CODE = generateDailyCode();
 
-// --- SAFE LOCAL STORAGE HELPERS ---
 function safeGet(key) {
     try {
         return localStorage.getItem(key);
@@ -446,27 +499,36 @@ function safeSet(key, value) {
     }
 }
 
-// --- LOCAL PLAYER STATS (LIFETIME) ---
-let localStats;
-try {
-    localStats = JSON.parse(safeGet("pbd_v23")) || {
-        played: 0,
-        wins: 0,
-        totalRows: 0,
-        lastDate: "",
-        history: []
-    };
-} catch (e) {
-    localStats = {
-        played: 0,
-        wins: 0,
-        totalRows: 0,
-        lastDate: "",
-        history: []
-    };
+function getStatsStorageKey() {
+    return `pbd_v24_${difficultyKey()}`;
 }
 
-// --- LOCAL PLAYER ID ---
+let localStats;
+function loadLocalStats() {
+    try {
+        localStats = JSON.parse(safeGet(getStatsStorageKey())) || {
+            played: 0,
+            wins: 0,
+            totalRows: 0,
+            lastDate: "",
+            history: []
+        };
+    } catch (e) {
+        localStats = {
+            played: 0,
+            wins: 0,
+            totalRows: 0,
+            lastDate: "",
+            history: []
+        };
+    }
+}
+loadLocalStats();
+
+function saveLocalStats() {
+    safeSet(getStatsStorageKey(), JSON.stringify(localStats));
+}
+
 function createPlayerId() {
     if (window.crypto && typeof crypto.randomUUID === "function") {
         return crypto.randomUUID();
@@ -479,21 +541,50 @@ function getPlayerId() {
     if (existing) return existing;
 
     const newId = createPlayerId();
-    const saved = safeSet("pbd_player", newId);
-
-    if (saved) {
-        const verify = safeGet("pbd_player");
-        if (verify) return verify;
-    }
-
-    return newId;
+    safeSet("pbd_player", newId);
+    return safeGet("pbd_player") || newId;
 }
 
 const playerId = getPlayerId();
 
-/* -----------------------------
-   STATS MODAL CONTENT
------------------------------- */
+function createInputBoxes() {
+    const container = document.getElementById("input-boxes");
+    if (!container) return;
+
+    container.innerHTML = "";
+    for (let i = 0; i < DIGITS; i++) {
+        const box = document.createElement("div");
+        box.className = "digit-box";
+        box.id = "d" + i;
+        container.appendChild(box);
+    }
+}
+
+function updateDifficultyButtons() {
+    document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
+    if (DIGITS === 3) document.getElementById("easy-btn").classList.add("active");
+    if (DIGITS === 4) document.getElementById("medium-btn").classList.add("active");
+    if (DIGITS === 5) document.getElementById("hard-btn").classList.add("active");
+}
+
+function setDifficulty(n) {
+    DIGITS = n;
+    safeSet("pbd_digits", String(n));
+    CODE = generateDailyCode();
+    loadLocalStats();
+    updateDifficultyButtons();
+    resetBoard();
+
+    const infoModal = document.getElementById("info-modal");
+    if (infoModal && infoModal.style.display !== "none") {
+        createInputBoxes();
+    }
+
+    if (localStats.lastDate === today) {
+        localStats.history.forEach(h => renderRow(h.g, h.e));
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
+    }
+}
 
 function ensureStatsElements() {
     const container = document.getElementById("stats-container");
@@ -546,21 +637,16 @@ function ensureStatsElements() {
     `;
 }
 
-/* -----------------------------
-   PAGE LOAD
------------------------------- */
-
 window.onload = () => {
+    updateDifficultyButtons();
+    createInputBoxes();
+
     if (localStats.lastDate === today) {
         toggleModal("info-modal", false);
         localStats.history.forEach(h => renderRow(h.g, h.e));
-        showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
     }
 };
-
-/* -----------------------------
-   MODAL / START
------------------------------- */
 
 async function toggleModal(id, show) {
     const modal = document.getElementById(id);
@@ -580,6 +666,8 @@ function startGame() {
     const inputBoxes = document.getElementById("input-boxes");
     const endMsg = document.getElementById("end-msg");
 
+    createInputBoxes();
+
     if (localStats.lastDate !== today) {
         if (keyboard) keyboard.style.display = "";
         if (inputBoxes) inputBoxes.style.display = "";
@@ -587,19 +675,40 @@ function startGame() {
     }
 }
 
-/* -----------------------------
-   INPUT
------------------------------- */
+function resetBoard() {
+    currentInput = "";
+
+    const log = document.getElementById("guess-log");
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
+
+    if (log) log.innerHTML = "";
+    if (keyboard) keyboard.style.display = "";
+    if (inputBoxes) inputBoxes.style.display = "";
+    if (endMsg) {
+        endMsg.style.display = "none";
+        endMsg.innerText = "";
+    }
+    if (shareBtn) {
+        shareBtn.style.opacity = "0.2";
+        shareBtn.style.pointerEvents = "none";
+    }
+
+    createInputBoxes();
+    updateDisplay();
+}
 
 function handlePress(val) {
     if (localStats.lastDate === today) return;
 
     if (val === "DEL") {
         currentInput = currentInput.slice(0, -1);
-    } else if (val === "ENT" && currentInput.length === 3) {
+    } else if (val === "ENT" && currentInput.length === DIGITS) {
         submitGuess();
         return;
-    } else if (currentInput.length < 3 && !currentInput.includes(val)) {
+    } else if (currentInput.length < DIGITS && !currentInput.includes(val)) {
         currentInput += val;
     }
 
@@ -607,21 +716,16 @@ function handlePress(val) {
 }
 
 function updateDisplay() {
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < DIGITS; i++) {
         const box = document.getElementById("d" + i);
         if (!box) continue;
-
         box.innerText = currentInput[i] || "";
         box.classList.toggle("filled", !!currentInput[i]);
     }
 }
 
-/* -----------------------------
-   GAME LOGIC
------------------------------- */
-
 async function submitGuess() {
-    if (currentInput.length !== 3) return;
+    if (currentInput.length !== DIGITS) return;
 
     let p = 0, b = 0, d = 0;
     const gArr = currentInput.split("");
@@ -658,11 +762,12 @@ async function submitGuess() {
         }
 
         localStats.lastDate = today;
-        safeSet("pbd_v23", JSON.stringify(localStats));
+        saveLocalStats();
 
         await syncGlobalData({
             win: win,
             rows: rowsUsed,
+            digits: DIGITS,
             ts: Date.now()
         });
 
@@ -673,13 +778,8 @@ async function submitGuess() {
     updateDisplay();
 }
 
-/* -----------------------------
-   FIREBASE WRITE (TODAY ONLY)
-   ONE SUBMISSION PER PLAYER/DAY
------------------------------- */
-
 async function syncGlobalData(game) {
-    const playerPath = `${FIREBASE_BASE}/stats/${today}/${playerId}.json`;
+    const playerPath = `${FIREBASE_BASE}/stats/${today}/${difficultyKey()}/${playerId}.json`;
 
     try {
         const res = await fetch(`${playerPath}?t=${Date.now()}`, {
@@ -699,16 +799,12 @@ async function syncGlobalData(game) {
     }
 }
 
-/* -----------------------------
-   FIREBASE READ (TODAY ONLY)
------------------------------- */
-
 async function fetchAndRenderGlobal() {
     const chart = document.getElementById("dist-chart");
     if (!chart) return;
 
     try {
-        const res = await fetch(`${STATS_URL}?t=${Date.now()}`, {
+        const res = await fetch(`${getStatsUrl()}?t=${Date.now()}`, {
             cache: "no-store"
         });
         const data = await res.json();
@@ -764,10 +860,6 @@ async function fetchAndRenderGlobal() {
     }
 }
 
-/* -----------------------------
-   LOCAL STATS UI
------------------------------- */
-
 function updateStatsUI() {
     const sPlayed = document.getElementById("s-played");
     const sWins = document.getElementById("s-wins");
@@ -790,13 +882,9 @@ function updateStatsUI() {
     if (sWinrate) sWinrate.innerText = winRate;
 }
 
-/* -----------------------------
-   RENDER GUESS ROW
------------------------------- */
-
 function renderRow(g, e) {
     const row = document.createElement("div");
-    row.className = "guess-row" + (e === "🍕🍕🍕" ? " winner" : "");
+    row.className = "guess-row" + (e === "🍕".repeat(DIGITS) ? " winner" : "");
     row.innerHTML = `
         <div class="guess-code">${g}</div>
         <div class="guess-emojis">${e}</div>
@@ -808,10 +896,6 @@ function renderRow(g, e) {
         log.scrollTop = log.scrollHeight;
     }
 }
-
-/* -----------------------------
-   END GAME
------------------------------- */
 
 function showEnd(win) {
     const keyboard = document.getElementById("keyboard");
@@ -825,7 +909,7 @@ function showEnd(win) {
     if (msg) {
         msg.style.display = "block";
         msg.innerText = win
-            ? "You Win 🍕🍕🍕"
+            ? "You Win " + "🍕".repeat(DIGITS)
             : "SORRY! TODAY'S CODE: " + CODE;
     }
 
@@ -837,15 +921,11 @@ function showEnd(win) {
     setTimeout(() => toggleModal("stats-modal", true), 1500);
 }
 
-/* -----------------------------
-   SHARE
------------------------------- */
-
 function share() {
-    const win = localStats.history.some(h => h.e === "🍕🍕🍕");
+    const win = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
     const emojiGrid = localStats.history.map(h => h.e).join("\n");
 
-    const text = `🍕🥯🍩 PIZZA BAGEL DONUT
+    const text = `🍕🥯🍩 PIZZA BAGEL DONUT (${difficultyKey().toUpperCase()})
 Played: ${today}
 Score: ${win ? localStats.history.length : "X"}/6
 
