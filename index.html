@@ -123,26 +123,35 @@
 </div>
 
 <script>
-    // 1. DATABASE CONFIG - Must end in .json
-    const FIREBASE_URL = "https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats.json";
+    // --- DATE / FIREBASE ---
     const today = new Date().toISOString().slice(0, 10);
-    
+    const STATS_URL = `https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats/${today}.json`;
+
     function generateDailyCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
-        let pool = [0,1,2,3,4,5,6,7,8,9], res = "";
-        for(let i=0; i<3; i++) {
-            let idx = (seed + (i*17)) % pool.length;
+        let pool = [0,1,2,3,4,5,6,7,8,9];
+        let res = "";
+
+        for (let i = 0; i < 3; i++) {
+            let idx = (seed + (i * 17)) % pool.length;
             res += pool.splice(idx, 1);
         }
         return res;
     }
-    
+
     const CODE = generateDailyCode();
     let currentInput = "";
-    // Using v16 to ensure fresh local storage sync with your new DB
-    let localStats = JSON.parse(localStorage.getItem('pbd_v16')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
-    window.onload = () => { 
+    // bumped version so old incomplete local storage doesn't conflict
+    let localStats = JSON.parse(localStorage.getItem('pbd_v17')) || {
+        played: 0,
+        wins: 0,
+        totalRows: 0,
+        lastDate: "",
+        history: []
+    };
+
+    window.onload = () => {
         if (localStats.lastDate === today) {
             toggleModal('info-modal', false);
             localStats.history.forEach(h => renderRow(h.g, h.e));
@@ -151,10 +160,10 @@
     };
 
     // --- MODAL LOGIC ---
-    async function toggleModal(id, s) { 
+    async function toggleModal(id, s) {
         const modal = document.getElementById(id);
         if (modal) modal.style.display = s ? 'block' : 'none';
-        
+
         if (id === 'stats-modal' && s) {
             updateStatsUI();
             await fetchAndRenderGlobal();
@@ -164,15 +173,23 @@
     // --- INPUT LOGIC ---
     function handlePress(val) {
         if (localStats.lastDate === today) return;
-        if (val === 'DEL') currentInput = currentInput.slice(0, -1);
-        else if (val === 'ENT' && currentInput.length === 3) submitGuess();
-        else if (currentInput.length < 3 && !currentInput.includes(val)) currentInput += val;
+
+        if (val === 'DEL') {
+            currentInput = currentInput.slice(0, -1);
+        } else if (val === 'ENT' && currentInput.length === 3) {
+            submitGuess();
+            return;
+        } else if (currentInput.length < 3 && !currentInput.includes(val)) {
+            currentInput += val;
+        }
+
         updateDisplay();
     }
 
     function updateDisplay() {
         for (let i = 0; i < 3; i++) {
             const box = document.getElementById('d' + i);
+            if (!box) continue;
             box.innerText = currentInput[i] || "";
             box.classList.toggle('filled', !!currentInput[i]);
         }
@@ -180,50 +197,63 @@
 
     // --- GAME LOGIC ---
     async function submitGuess() {
-        let p=0, b=0, d=0;
-        let gArr = currentInput.split(''), cArr = CODE.split('');
-        gArr.forEach((n, i) => { if (n === cArr[i]) p++; else if (cArr.includes(n)) b++; else d++; });
+        if (currentInput.length !== 3) return;
+
+        let p = 0, b = 0, d = 0;
+        let gArr = currentInput.split('');
+        let cArr = CODE.split('');
+
+        gArr.forEach((n, i) => {
+            if (n === cArr[i]) p++;
+            else if (cArr.includes(n)) b++;
+            else d++;
+        });
+
         const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
-        
+
         renderRow(currentInput, emojis);
-        localStats.history.push({g: currentInput, e: emojis});
-        
+        localStats.history.push({ g: currentInput, e: emojis });
+
         if (currentInput === CODE || localStats.history.length >= 6) {
-            const isWin = (currentInput === CODE);
+            const isWin = currentInput === CODE;
+            const rowsUsed = localStats.history.length;
+
             localStats.played++;
-            if (isWin) { 
-                localStats.wins++; 
-                localStats.totalRows += localStats.history.length;
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } }); 
-                await syncGlobalData(localStats.history.length);
+
+            if (isWin) {
+                localStats.wins++;
+                localStats.totalRows += rowsUsed;
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
             }
+
             localStats.lastDate = today;
-            localStorage.setItem('pbd_v16', JSON.stringify(localStats));
+            localStorage.setItem('pbd_v17', JSON.stringify(localStats));
+
+            // record every finished game globally
+            await syncGlobalData({
+                win: isWin,
+                rows: rowsUsed,
+                ts: Date.now()
+            });
+
             showEnd(isWin);
         }
-        currentInput = ""; updateDisplay();
+
+        currentInput = "";
+        updateDisplay();
     }
 
-    // --- FIREBASE SYNC LOGIC ---
-    async function syncGlobalData(rowNum) {
+    // --- FIREBASE SYNC ---
+    async function syncGlobalData(gameResult) {
         try {
-            // Fetch current state
-            const res = await fetch(FIREBASE_URL);
-            let data = await res.json();
-            
-            // Initialize if first time
-            if (!data || !data.dist) {
-                data = { dist: [0, 0, 0, 0, 0, 0] };
-            }
-            
-            // Increment the row
-            data.dist[rowNum - 1] = (data.dist[rowNum - 1] || 0) + 1;
-            
-            // Save to Firebase
-            await fetch(FIREBASE_URL, {
-                method: 'PUT',
+            await fetch(STATS_URL, {
+                method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(data)
+                body: JSON.stringify(gameResult)
             });
         } catch (e) {
             console.error("Database Write Error:", e);
@@ -232,60 +262,147 @@
 
     async function fetchAndRenderGlobal() {
         const chart = document.getElementById('dist-chart');
+        if (!chart) return;
+
         try {
-            const res = await fetch(`${FIREBASE_URL}?t=${Date.now()}`);
+            const res = await fetch(`${STATS_URL}?t=${Date.now()}`);
             const data = await res.json();
-            const dist = (data && data.dist) ? data.dist : [0,0,0,0,0,0];
+
+            // 1-6 are wins by row, 7th bucket is losses
+            const dist = [0, 0, 0, 0, 0, 0, 0];
+            let totalPlayed = 0;
+            let totalWins = 0;
+
+            if (data) {
+                Object.values(data).forEach(game => {
+                    if (!game) return;
+
+                    totalPlayed++;
+
+                    if (game.win && game.rows >= 1 && game.rows <= 6) {
+                        dist[game.rows - 1]++;
+                        totalWins++;
+                    } else if (!game.win) {
+                        dist[6]++;
+                    }
+                });
+            }
+
             const maxVal = Math.max(...dist, 1);
-            
+
             chart.innerHTML = dist.map((count, i) => {
-                const width = Math.max((count/maxVal)*100, 8);
+                const label = i < 6 ? (i + 1) : 'X';
+                const width = count > 0 ? Math.max((count / maxVal) * 100, 8) : 8;
+
                 return `
-                <div class="dist-row">
-                    <span>${i+1}</span>
-                    <div class="dist-bar" style="width:${width}%">${count}</div>
-                </div>`;
+                    <div class="dist-row">
+                        <span>${label}</span>
+                        <div class="dist-bar" style="width:${width}%">${count}</div>
+                    </div>
+                `;
             }).join('');
-        } catch(e) { 
-            chart.innerText = "Global stats currently unavailable"; 
+
+            const gPlayed = document.getElementById('g-played');
+            const gWins = document.getElementById('g-wins');
+            const gWinRate = document.getElementById('g-winrate');
+
+            if (gPlayed) gPlayed.innerText = totalPlayed;
+            if (gWins) gWins.innerText = totalWins;
+            if (gWinRate) {
+                gWinRate.innerText = totalPlayed === 0
+                    ? "0%"
+                    : `${Math.round((totalWins / totalPlayed) * 100)}%`;
+            }
+
+        } catch (e) {
+            console.error("Global stats read error:", e);
+            chart.innerText = "Global stats currently unavailable";
         }
     }
 
+    // --- LOCAL STATS UI ---
     function updateStatsUI() {
-        document.getElementById('s-played').innerText = localStats.played;
-        document.getElementById('s-wins').innerText = localStats.wins;
-        const avg = localStats.wins === 0 ? 0 : (localStats.totalRows / localStats.wins).toFixed(1);
-        document.getElementById('s-avg').innerText = avg;
+        const playedEl = document.getElementById('s-played');
+        const winsEl = document.getElementById('s-wins');
+        const avgEl = document.getElementById('s-avg');
+        const winRateEl = document.getElementById('s-winrate');
+
+        if (playedEl) playedEl.innerText = localStats.played;
+        if (winsEl) winsEl.innerText = localStats.wins;
+
+        const avg = localStats.wins === 0
+            ? 0
+            : (localStats.totalRows / localStats.wins).toFixed(1);
+
+        if (avgEl) avgEl.innerText = avg;
+
+        const winRate = localStats.played === 0
+            ? "0%"
+            : `${Math.round((localStats.wins / localStats.played) * 100)}%`;
+
+        if (winRateEl) winRateEl.innerText = winRate;
     }
 
+    // --- RENDER GUESS ROW ---
     function renderRow(g, e) {
-        const row = document.createElement('div'); 
+        const row = document.createElement('div');
         row.className = 'guess-row' + (e === "🍕🍕🍕" ? " winner" : "");
-        row.innerHTML = `<div class="guess-code">${g}</div><div class="guess-emojis">${e}</div>`;
+        row.innerHTML = `
+            <div class="guess-code">${g}</div>
+            <div class="guess-emojis">${e}</div>
+        `;
+
         const log = document.getElementById('guess-log');
-        log.appendChild(row);
-        log.scrollTop = log.scrollHeight;
+        if (log) {
+            log.appendChild(row);
+            log.scrollTop = log.scrollHeight;
+        }
     }
 
+    // --- END STATE ---
     function showEnd(win) {
-        document.getElementById('keyboard').style.display = 'none';
-        document.getElementById('input-boxes').style.display = 'none';
+        const keyboard = document.getElementById('keyboard');
+        const inputBoxes = document.getElementById('input-boxes');
         const msg = document.getElementById('end-msg');
-        msg.style.display = 'block';
-        msg.innerText = win ? "You Win 🍕🍕🍕" : "KITCHEN CLOSED! CODE: " + CODE;
         const sBtn = document.getElementById('share-icon');
-        sBtn.style.opacity = "1"; sBtn.style.pointerEvents = "auto";
+
+        if (keyboard) keyboard.style.display = 'none';
+        if (inputBoxes) inputBoxes.style.display = 'none';
+
+        if (msg) {
+            msg.style.display = 'block';
+            msg.innerText = win ? "You Win 🍕🍕🍕" : "KITCHEN CLOSED! CODE: " + CODE;
+        }
+
+        if (sBtn) {
+            sBtn.style.opacity = "1";
+            sBtn.style.pointerEvents = "auto";
+        }
+
         setTimeout(() => toggleModal('stats-modal', true), 1500);
     }
 
+    // --- SHARE ---
     function share() {
         const win = localStats.history.some(h => h.e === "🍕🍕🍕");
         const emojiGrid = localStats.history.map(h => h.e).join('\n');
-        const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nPlayed: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
-        if (navigator.share) { 
-            navigator.share({ text: text }).catch(() => navigator.clipboard.writeText(text)); 
-        } else { 
-            navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!")); 
+
+        const text = `🍕🥯🍩 PIZZA BAGEL DONUT
+Played: ${today}
+Score: ${win ? localStats.history.length : 'X'}/6
+
+${emojiGrid}
+
+https://pizzabageldonut.com`;
+
+        if (navigator.share) {
+            navigator.share({ text }).catch(() => {
+                navigator.clipboard.writeText(text);
+            });
+        } else {
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Box Score Copied!");
+            });
         }
     }
 </script>
