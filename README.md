@@ -14,9 +14,9 @@
         h1 { margin: 0 0 10px 0; font-size: 1.8rem; letter-spacing: -1px; color: var(--sauce); }
         .player-badge { font-size: 0.8rem; background: #eee; padding: 5px 12px; border-radius: 15px; display: inline-block; margin-bottom: 20px; color: #666; font-weight: bold; }
         
-        .rules-bar { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-bottom: 20px; font-size: 0.75rem; border-top: 1px solid #eee; border-bottom: 1px solid #eee; padding: 10px 0; }
-        .rule { font-weight: bold; }
-        .p-text { color: #2e7d32; } .b-text { color: #f57c00; } .d-text { color: #757575; }
+        .how-to-play { text-align: left; background: #fff9c4; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.85rem; line-height: 1.4; border-left: 5px solid var(--sauce); }
+        .rules-grid { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px; }
+        .rule-item { display: flex; align-items: center; gap: 10px; }
 
         .scoreboard { background: #2d2d2d; color: #fff; padding: 12px; border-radius: 10px; margin-bottom: 20px; display: grid; grid-template-columns: 1fr 1fr; }
         .stat-label { font-size: 0.65rem; color: #aaa; text-transform: uppercase; display: block; }
@@ -26,7 +26,7 @@
         button { width: 100%; padding: 16px; background: var(--sauce); color: white; border: none; border-radius: 10px; font-size: 1.1rem; cursor: pointer; font-weight: bold; transition: 0.2s; }
         button:hover { background: #b71c1c; transform: translateY(-2px); }
         
-        .log { margin-top: 25px; text-align: left; background: #fafafa; padding: 15px; border-radius: 10px; height: 200px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; border: 1px solid #eee; }
+        .log { margin-top: 25px; text-align: left; background: #fafafa; padding: 15px; border-radius: 10px; height: 180px; overflow-y: auto; font-family: 'Courier New', Courier, monospace; font-size: 0.95rem; border: 1px solid #eee; }
         .p-result { color: #2e7d32; font-weight: bold; }
         .b-result { color: #f57c00; font-weight: bold; }
         .d-result { color: #9e9e9e; font-weight: bold; }
@@ -42,10 +42,14 @@
     <h1>🍕 PIZZA BAGEL DONUT</h1>
     <div id="player-tag" class="player-badge">Loading Profile...</div>
 
-    <div class="rules-bar">
-        <div class="rule p-text">🍕 PIZZA<br><small>Right Spot</small></div>
-        <div class="rule b-text">🥯 BAGEL<br><small>Wrong Spot</small></div>
-        <div class="rule d-text">🍩 DONUT<br><small>Not in Code</small></div>
+    <div class="how-to-play">
+        <strong>HOW TO PLAY:</strong><br>
+        Guess the daily 3-digit code in 9 tries.
+        <div class="rules-grid">
+            <div class="rule-item">🍕 <strong>PIZZA:</strong> Correct number, correct spot.</div>
+            <div class="rule-item">🥯 <strong>BAGEL:</strong> Correct number, wrong spot.</div>
+            <div class="rule-item">🍩 <strong>DONUT:</strong> Number is not in the code.</div>
+        </div>
     </div>
 
     <div class="scoreboard">
@@ -58,7 +62,7 @@
         <button onclick="checkOrder()">Submit Order</button>
     </div>
 
-    <div class="log" id="game-log"><strong>DAILY LOG:</strong><br>Enter today's 3-digit code...</div>
+    <div class="log" id="game-log"><strong>DAILY LOG:</strong><br>Taking your order...</div>
     <button id="share-btn" style="display:none; margin-top:10px; background:#43a047;" onclick="copyResult()">Share Results 📋</button>
 </div>
 
@@ -80,7 +84,6 @@
     
     let stats = JSON.parse(localStorage.getItem('pbd_v1_stats')) || { games: 0, hits: 0, lastDate: "", nick: "" };
 
-    // Identity Management
     if (!stats.nick) {
         let n = prompt("What should we call you on the leaderboard?");
         stats.nick = n ? n.substring(0, 12) : "Foodie" + Math.floor(Math.random()*999);
