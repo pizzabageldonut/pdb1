@@ -19,13 +19,10 @@
         .guess-row.winner { background-color: var(--pizzabox); border-color: #c99b5a; color: #fff; }
         .controls-area { background: var(--pizzabg); border-top: 1px solid var(--border); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); }
         .input-display-area { display: flex; justify-content: center; gap: 10px; padding: 10px 0; background: #fff; border-bottom: 1px solid var(--border); }
-        
         .digit-box { width: 38px; height: 42px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: var(--sauce); transition: all 0.1s; }
         .digit-box.filled { border-color: var(--sauce); }
-        
         .digit-box.error { border-color: var(--sauce); color: var(--sauce); animation: shake 0.2s ease-in-out 0s 2; }
         @keyframes shake { 0% { transform: translateX(0); } 25% { transform: translateX(-4px); } 75% { transform: translateX(4px); } 100% { transform: translateX(0); } }
-
         .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
         .key-row { display: flex; gap: 5px; width: 100%; }
         .key { flex: 1; height: 46px; background: var(--key); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
@@ -97,7 +94,7 @@
 <div class="modal" id="info-modal">
     <div class="modal-content" style="text-align:left;">
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; margin-bottom:5px;">How to Unlock Your Pizza Box!</h2>
-        <p style="font-size:0.85rem; color:#555;">Guess the 3-digit daily code in 9 tries.</p>
+        <p style="font-size:0.85rem; color:#555;">Guess the 3-digit daily code in <strong>6 tries</strong>.</p>
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px; font-size:0.9rem; line-height:1.6;">
             <div>🍕 <strong>PIZZA:</strong> Correct digit. Correct position.</div>
             <div>🥯 <strong>BAGEL:</strong> Correct digit. Move it elsewhere.</div>
@@ -112,11 +109,10 @@
 
 <script>
     const FIREBASE_URL = "https://pizzabageldonut-game-default-rtdb.firebaseio.com/stats.json";
-
     const today = new Date().toISOString().slice(0, 10);
     const CODE = generateCode();
     let currentInput = "", tries = 0;
-    let localStats = JSON.parse(localStorage.getItem('pbd_stats_local')) || { played: 0, unboxed: 0, totalRows: 0, lastDate: "", history: [] };
+    let localStats = JSON.parse(localStorage.getItem('pbd_stats_local_v3')) || { played: 0, unboxed: 0, totalRows: 0, lastDate: "", history: [] };
 
     function generateCode() {
         const seed = today.split('-').reduce((a, b) => a + parseInt(b), 0);
@@ -130,9 +126,7 @@
 
     function press(val) {
         if (localStats.lastDate === today) return;
-        
         for(let i=0; i<3; i++) document.getElementById('d'+i).classList.remove('error');
-
         if (val === 'DEL') currentInput = currentInput.slice(0, -1);
         else if (val === 'ENT') {
             if (currentInput.length === 3) submitGuess();
@@ -143,119 +137,4 @@
     }
 
     function showError() {
-        for (let i = 0; i < 3; i++) {
-            const box = document.getElementById('d' + i);
-            if (!currentInput[i]) {
-                box.innerText = "X";
-                box.classList.add('error');
-            }
-        }
-    }
-
-    function updateDisplay() {
-        for (let i = 0; i < 3; i++) {
-            const box = document.getElementById('d' + i);
-            if (!box.classList.contains('error')) {
-                box.innerText = currentInput[i] || "";
-                box.classList.toggle('filled', !!currentInput[i]);
-            }
-        }
-    }
-
-    async function submitGuess() {
-        tries++;
-        let p=0, b=0, d=0;
-        let gArr = currentInput.split(''), cArr = CODE.split('');
-        gArr.forEach((n, i) => { if (n === cArr[i]) p++; else if (cArr.includes(n)) b++; else d++; });
-        const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
-        renderRow(currentInput, emojis);
-        localStats.history.push({g: currentInput, e: emojis});
-        
-        if (currentInput === CODE || tries >= 9) {
-            localStats.played++;
-            if (currentInput === CODE) { 
-                localStats.unboxed++; 
-                localStats.totalRows += tries;
-                confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-                await updateGlobalStats(tries);
-            }
-            localStats.lastDate = today;
-            localStorage.setItem('pbd_stats_local', JSON.stringify(localStats));
-            showEnd(currentInput === CODE);
-        }
-        currentInput = ""; updateDisplay();
-    }
-
-    async function updateGlobalStats(rowNum) {
-        try {
-            const res = await fetch(FIREBASE_URL);
-            const data = await res.json() || { dist: [0,0,0,0,0,0,0,0,0] };
-            if(!data.dist) data.dist = [0,0,0,0,0,0,0,0,0];
-            data.dist[rowNum - 1]++;
-            await fetch(FIREBASE_URL, {
-                method: 'PATCH',
-                body: JSON.stringify({ dist: data.dist })
-            });
-        } catch (e) { console.error("Database connection issue", e); }
-    }
-
-    async function fetchGlobalStats() {
-        try {
-            const res = await fetch(FIREBASE_URL);
-            const data = await res.json();
-            return data.dist || [0,0,0,0,0,0,0,0,0];
-        } catch (e) { return [0,0,0,0,0,0,0,0,0]; }
-    }
-
-    function renderRow(g, e) {
-        const row = document.createElement('div'); row.className = 'guess-row';
-        if (e === "🍕🍕🍕") row.className += ' winner';
-        row.innerHTML = `<div class="guess-code">${g}</div><div class="guess-emojis">${e}</div>`;
-        const log = document.getElementById('guess-log');
-        log.appendChild(row);
-        log.scrollTo({ top: log.scrollHeight, behavior: 'smooth' });
-    }
-
-    function showEnd(win) {
-        document.getElementById('keyboard').style.display = 'none';
-        document.getElementById('input-boxes').style.display = 'none';
-        const msg = document.getElementById('end-msg');
-        msg.style.display = 'block';
-        msg.innerText = win ? "PIZZA BOX OPENED! 🍕" : "KITCHEN CLOSED! CODE: " + CODE;
-        document.getElementById('share-icon').style.opacity = "1";
-        document.getElementById('share-icon').style.pointerEvents = "auto";
-    }
-
-    async function toggleModal(id, s) { 
-        document.getElementById(id).style.display = s ? 'block' : 'none';
-        if (id === 'stats-modal') {
-            document.getElementById('s-played').innerText = localStats.played;
-            document.getElementById('s-unboxed').innerText = localStats.unboxed;
-            document.getElementById('s-avg').innerText = localStats.unboxed === 0 ? 0 : (localStats.totalRows / localStats.unboxed).toFixed(1);
-            
-            const globalDist = await fetchGlobalStats();
-            const chart = document.getElementById('dist-chart');
-            chart.innerHTML = "";
-            const max = Math.max(...globalDist, 1);
-            globalDist.forEach((count, i) => {
-                const width = Math.max((count / max) * 100, 7);
-                chart.innerHTML += `<div class="dist-row"><span>${i+1}</span><div class="dist-bar" style="width:${width}%"></div></div>`;
-            });
-        }
-    }
-    
-    function share() {
-        const win = localStats.history.some(h => h.e === "🍕🍕🍕");
-        const emojiLines = localStats.history.map(h => h.e).join('\n');
-        const scoreLine = win ? `${localStats.history.length}/9` : 'X/9';
-        const text = `🍕🥯🍩 Pizza Bagel Donut\nShift: ${today}\nScore: ${scoreLine}\n\n${emojiLines}\n\n#PizzaBagelDonut`;
-        navigator.clipboard.writeText(text).then(() => alert("Spoiler-free box score copied!"));
-    }
-
-    if (localStats.lastDate === today) {
-        localStats.history.forEach(h => renderRow(h.g, h.e));
-        showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
-    }
-</script>
-</body>
-</html>
+        for (let i =
