@@ -6,100 +6,307 @@
     <title>Pizza Bagel Donut</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <style>
-        :root { --pizzabg: #faf9f6; --text: #1a1a1a; --sauce: #b22222; --border: #d3d6da; --key: #e3e3e1; --pizzabox: #e1b272; }
-        
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; background-color: var(--pizzabg); color: var(--text); display: flex; flex-direction: column; height: 100vh; height: 100svh; margin: 0; padding: 0; overflow: hidden; }
-        header { width: 100%; display: flex; flex-direction: column; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--border); background: var(--pizzabg); flex-shrink: 0; }
-        .logo-emoji-hero { font-size: 2rem; letter-spacing: 10px; margin-bottom: 4px; padding-left: 10px; }
-        h4 { font-size: 0.85rem; letter-spacing: 4px; color: var(--sauce); text-transform: uppercase; margin: 0; font-weight: 900; }
-        
-        #game { flex: 1; display: flex; flex-direction: column; width: 100%; max-width: 500px; margin: 0 auto; overflow: hidden; position: relative; }
-        #guess-log { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; padding: 10px 15px; align-items: center; }
-        
-        .guess-row { display: grid; grid-template-columns: 1fr 1.2fr; align-items: center; padding: 10px 15px; background: #fff; border: 1px solid var(--border); border-radius: 4px; width: 100%; max-width: 240px; box-sizing: border-box; }
-        .guess-code { font-family: 'Courier New', monospace; font-size: 1.3rem; font-weight: 800; letter-spacing: 4px; }
-        .guess-emojis { display: flex; justify-content: flex-end; font-size: 1.1rem; }
-        .guess-row.winner { background-color: var(--pizzabox); border-color: #c99b5a; color: #fff; }
+        :root {
+            --pizzabg: #faf9f6;
+            --text: #1a1a1a;
+            --sauce: #b22222;
+            --border: #d3d6da;
+            --key: #e3e3e1;
+            --pizzabox: #e1b272;
+        }
 
-        .controls-area { background: var(--pizzabg); border-top: 1px solid var(--border); flex-shrink: 0; padding-bottom: env(safe-area-inset-bottom); z-index: 10; }
-        .input-display-area { display: flex; justify-content: center; gap: 10px; padding: 10px 0; background: #fff; border-bottom: 1px solid var(--border); }
-        
-        .digit-box { width: 38px; height: 42px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: 800; color: #000; background: #fff; }
-        .digit-box.filled { background: #000; color: #fff; border-color: #000; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--pizzabg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            height: 100svh;
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+        }
 
-        .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
-        .key-row { display: flex; gap: 5px; width: 100%; }
-        .key { flex: 1; height: 44px; background: var(--key); border-radius: 4px; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none; -webkit-tap-highlight-color: transparent; }
-        .key:active { background: #ccc; }
-        .key.action { background: #c5c5c3; font-size: 0.7rem; letter-spacing: 0.5px; flex: 2; }
+        header {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid var(--border);
+            background: var(--pizzabg);
+            flex-shrink: 0;
+        }
 
-        .toolbar { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
-        .tool-btn { font-size: 1.5rem; cursor: pointer; }
+        .logo-emoji-hero {
+            font-size: 2rem;
+            letter-spacing: 10px;
+            margin-bottom: 4px;
+            padding-left: 10px;
+        }
 
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .modal-content { max-width: 400px; margin: 0 auto; text-align: center; }
-        .rule-line { display: flex; align-items: center; gap: 15px; margin: 12px 0; font-size: 0.95rem; line-height: 1.4; text-align: left; }
+        h4 {
+            font-size: 0.85rem;
+            letter-spacing: 4px;
+            color: var(--sauce);
+            text-transform: uppercase;
+            margin: 0;
+            font-weight: 900;
+        }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 20px 0; }
-        .stat-val { font-size: 1.5rem; font-weight: 800; color: var(--sauce); display: block; }
-        .stat-lbl { font-size: 0.6rem; text-transform: uppercase; font-weight: 700; color: #787c7e; }
-        .dist-container { text-align: left; margin-top: 25px; }
-        .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.8rem; font-weight: 700; }
-        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 25px; text-align: right; }
-        /* -----------------------------
-   COMPACT STATS MODAL STYLE
------------------------------- */
+        #game {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+            overflow: hidden;
+            position: relative;
+        }
 
-.stats-section {
-    margin-top: 10px;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    align-items: center;
-    text-align: center;
-}
-.stats-card {
-    border-top: 1px solid #d3d6da;
-    padding-top: 10px;
-}
+        #guess-log {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            padding: 10px 15px;
+            align-items: center;
+        }
 
-.stats-title {
-    font-size: 12px;
-    font-weight: 700;
-    margin-bottom: 6px;
-    letter-spacing: .03em;
-    color: #1a1a1a;
-}
+        .guess-row {
+            display: grid;
+            grid-template-columns: 1fr 1.2fr;
+            align-items: center;
+            padding: 10px 15px;
+            background: #fff;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            width: 100%;
+            max-width: 240px;
+            box-sizing: border-box;
+        }
 
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(2, 70px);
-    justify-content: center;
-    gap: 10px;
-}
+        .guess-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1.3rem;
+            font-weight: 800;
+            letter-spacing: 4px;
+        }
 
-.stats-grid-3 {
-    grid-template-columns: repeat(3, 70px);
-    justify-content: center;
-}
+        .guess-emojis {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 1.1rem;
+        }
 
-.stat-box {
-    text-align: center;
-    padding: 4px 0;
-}
+        .guess-row.winner {
+            background-color: var(--pizzabox);
+            border-color: #c99b5a;
+            color: #fff;
+        }
 
-.stat-value {
-    font-size: 18px;
-    font-weight: 700;
-    line-height: 1;
-}
+        .controls-area {
+            background: var(--pizzabg);
+            border-top: 1px solid var(--border);
+            flex-shrink: 0;
+            padding-bottom: env(safe-area-inset-bottom);
+            z-index: 10;
+        }
 
-.stat-label {
-    font-size: 10px;
-    color: #777;
-    margin-top: 2px;
-    letter-spacing: .04em;
-}
+        .input-display-area {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px 0;
+            background: #fff;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .digit-box {
+            width: 38px;
+            height: 42px;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #000;
+            background: #fff;
+        }
+
+        .digit-box.filled {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
+
+        .keypad-area {
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .key-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
+        .key {
+            flex: 1;
+            height: 44px;
+            background: var(--key);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .key:active {
+            background: #ccc;
+        }
+
+        .key.action {
+            background: #c5c5c3;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            flex: 2;
+        }
+
+        .toolbar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid var(--border);
+        }
+
+        .tool-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.98);
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .rule-line {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 12px 0;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .dist-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .dist-bar {
+            background: #787c7e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 2px;
+            min-width: 25px;
+            text-align: right;
+        }
+
+        .stats-section {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        .stats-card {
+            border-top: 1px solid #d3d6da;
+            padding-top: 10px;
+            width: 100%;
+        }
+
+        .stats-title {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: .03em;
+            color: #1a1a1a;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 70px);
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .stats-grid-3 {
+            grid-template-columns: repeat(3, 70px);
+            justify-content: center;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #777;
+            margin-top: 2px;
+            letter-spacing: .04em;
+        }
+
+        .dist-chart {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        #stats-container {
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -111,23 +318,37 @@
 
 <div id="game">
     <div id="guess-log"></div>
+
     <div class="controls-area">
         <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom: 1px solid var(--border);"></div>
+
         <div class="input-display-area" id="input-boxes">
-            <div class="digit-box" id="d0"></div><div class="digit-box" id="d1"></div><div class="digit-box" id="d2"></div>
+            <div class="digit-box" id="d0"></div>
+            <div class="digit-box" id="d1"></div>
+            <div class="digit-box" id="d2"></div>
         </div>
+
         <div class="keypad-area" id="keyboard">
             <div class="key-row">
-                <div class="key" onclick="handlePress('1')">1</div><div class="key" onclick="handlePress('2')">2</div><div class="key" onclick="handlePress('3')">3</div><div class="key" onclick="handlePress('4')">4</div><div class="key" onclick="handlePress('5')">5</div>
+                <div class="key" onclick="handlePress('1')">1</div>
+                <div class="key" onclick="handlePress('2')">2</div>
+                <div class="key" onclick="handlePress('3')">3</div>
+                <div class="key" onclick="handlePress('4')">4</div>
+                <div class="key" onclick="handlePress('5')">5</div>
             </div>
             <div class="key-row">
-                <div class="key" onclick="handlePress('6')">6</div><div class="key" onclick="handlePress('7')">7</div><div class="key" onclick="handlePress('8')">8</div><div class="key" onclick="handlePress('9')">9</div><div class="key" onclick="handlePress('0')">0</div>
+                <div class="key" onclick="handlePress('6')">6</div>
+                <div class="key" onclick="handlePress('7')">7</div>
+                <div class="key" onclick="handlePress('8')">8</div>
+                <div class="key" onclick="handlePress('9')">9</div>
+                <div class="key" onclick="handlePress('0')">0</div>
             </div>
             <div class="key-row">
                 <div class="key action" onclick="handlePress('DEL')">DELETE</div>
                 <div class="key action" style="background:var(--sauce); color:white;" onclick="handlePress('ENT')">ENTER</div>
             </div>
         </div>
+
         <div class="toolbar">
             <div class="tool-btn" onclick="toggleModal('info-modal', true)">❓</div>
             <div id="share-icon" class="tool-btn" style="opacity:0.2; pointer-events:none;" onclick="share()">📤</div>
@@ -141,8 +362,11 @@
         <p style="text-align:center; font-size:1.2rem; margin-bottom:10px;">🍕 🥯 🍩</p>
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
         <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
-        <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">The goal is to guess a hidden 3-number code to open the Pizza Box in <strong>6 tries</strong>. After each guess, you will receive three clues:</p>
-        
+        <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">
+            The goal is to guess a hidden 3-number code to open the Pizza Box in <strong>6 tries</strong>.
+            After each guess, you will receive three clues:
+        </p>
+
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px;">
             <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> One number is correct and in the right spot.</span></div>
             <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> One number is correct, but in the wrong spot.</span></div>
@@ -154,25 +378,22 @@
             The clues (Pizza, Bagel, Donut) <strong>DO NOT</strong> match the order of your numbers.<br><br>
             <em><strong>Example:</strong> If you guess 1-2-3 and the clue is "Pizza," it doesn't mean the number 1 is the Pizza. It just means one of those three numbers is in the right spot!</em>
         </div>
-        
+
         <p style="font-size: 0.75rem; color: #888; text-align:center; margin-bottom:15px;"><em>All numbers in the code are unique.</em></p>
-        <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">Start</button>
+
+        <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">
+            Start
+        </button>
     </div>
 </div>
 
 <div class="modal" id="stats-modal">
     <div class="modal-content">
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
-        <div class="stats-grid">
-            <div><span class="stat-val" id="s-played">0</span><span class="stat-lbl">Games Played</span></div>
-            <div><span class="stat-val" id="s-wins">0</span><span class="stat-lbl">Games Won</span></div>
-            <div><span class="stat-val" id="s-avg">0</span><span class="stat-lbl">Avg Row</span></div>
-        </div>
-        <div class="dist-container">
-            <h3 style="font-size:0.7rem; text-transform:uppercase; margin-bottom:10px; color:var(--sauce)">Today's Global Distribution</h3>
-            <div id="dist-chart">Loading today's stats...</div>
-        </div>
-        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:20px; cursor:pointer;">Close</button>
+        <div id="stats-container"></div>
+        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:20px; cursor:pointer;">
+            Close
+        </button>
     </div>
 </div>
 
@@ -270,71 +491,60 @@ function getPlayerId() {
 
 const playerId = getPlayerId();
 
-
 /* -----------------------------
    STATS MODAL CONTENT
-   (ONLY INSIDE THE MODAL)
 ------------------------------ */
 
 function ensureStatsElements() {
-    const modal = document.getElementById("stats-modal");
-    if (!modal) return;
-
-    let container = document.getElementById("stats-container");
-
-    if (!container) {
-        container = document.createElement("div");
-        container.id = "stats-container";
-        modal.appendChild(container);
-    }
+    const container = document.getElementById("stats-container");
+    if (!container) return;
 
     container.innerHTML = `
-    <div class="stats-section">
-        <div class="stats-card">
-            <div class="stats-title">Your Stats</div>
-            <div class="stats-grid">
-                <div class="stat-box">
-                    <div class="stat-value" id="s-played">0</div>
-                    <div class="stat-label">Played</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="s-wins">0</div>
-                    <div class="stat-label">Wins</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="s-winrate">0%</div>
-                    <div class="stat-label">Win Rate</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="s-avg">0</div>
-                    <div class="stat-label">Avg Rows</div>
-                </div>
-            </div>
-        </div>
-
-        <div class="stats-card">
-            <div class="stats-title">Global Stats</div>
-            <div class="stats-grid stats-grid-3">
-                <div class="stat-box">
-                    <div class="stat-value" id="g-played">0</div>
-                    <div class="stat-label">Players</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="g-wins">0</div>
-                    <div class="stat-label">Wins</div>
-                </div>
-                <div class="stat-box">
-                    <div class="stat-value" id="g-winrate">0%</div>
-                    <div class="stat-label">Win Rate</div>
+        <div class="stats-section">
+            <div class="stats-card">
+                <div class="stats-title">Your Stats</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-played">0</div>
+                        <div class="stat-label">Played</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-wins">0</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-winrate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-avg">0</div>
+                        <div class="stat-label">Avg Rows</div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div id="dist-chart" class="dist-chart"></div>
-    </div>
-`;
+            <div class="stats-card">
+                <div class="stats-title">Global Stats</div>
+                <div class="stats-grid stats-grid-3">
+                    <div class="stat-box">
+                        <div class="stat-value" id="g-played">0</div>
+                        <div class="stat-label">Players</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="g-wins">0</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="g-winrate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dist-chart" class="dist-chart"></div>
+        </div>
+    `;
 }
-
 
 /* -----------------------------
    PAGE LOAD
@@ -347,7 +557,6 @@ window.onload = () => {
         showEnd(localStats.history.some(h => h.e === "🍕🍕🍕"));
     }
 };
-
 
 /* -----------------------------
    MODAL / START
@@ -378,7 +587,6 @@ function startGame() {
     }
 }
 
-
 /* -----------------------------
    INPUT
 ------------------------------ */
@@ -407,7 +615,6 @@ function updateDisplay() {
         box.classList.toggle("filled", !!currentInput[i]);
     }
 }
-
 
 /* -----------------------------
    GAME LOGIC
@@ -466,7 +673,6 @@ async function submitGuess() {
     updateDisplay();
 }
 
-
 /* -----------------------------
    FIREBASE WRITE (TODAY ONLY)
    ONE SUBMISSION PER PLAYER/DAY
@@ -481,21 +687,17 @@ async function syncGlobalData(game) {
         });
         const existing = await res.json();
 
-        if (existing) {
-            return;
-        }
+        if (existing) return;
 
         await fetch(playerPath, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(game)
         });
-
     } catch (e) {
         console.error("Global stats write error:", e);
     }
 }
-
 
 /* -----------------------------
    FIREBASE READ (TODAY ONLY)
@@ -562,7 +764,6 @@ async function fetchAndRenderGlobal() {
     }
 }
 
-
 /* -----------------------------
    LOCAL STATS UI
 ------------------------------ */
@@ -589,7 +790,6 @@ function updateStatsUI() {
     if (sWinrate) sWinrate.innerText = winRate;
 }
 
-
 /* -----------------------------
    RENDER GUESS ROW
 ------------------------------ */
@@ -608,7 +808,6 @@ function renderRow(g, e) {
         log.scrollTop = log.scrollHeight;
     }
 }
-
 
 /* -----------------------------
    END GAME
@@ -637,7 +836,6 @@ function showEnd(win) {
 
     setTimeout(() => toggleModal("stats-modal", true), 1500);
 }
-
 
 /* -----------------------------
    SHARE
