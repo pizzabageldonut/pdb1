@@ -88,16 +88,19 @@
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
         <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
         <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">The goal is to guess a hidden 3-number code to open the Pizza Box in <strong>6 tries</strong>. After each guess, you will receive three clues:</p>
+        
         <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px;">
             <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> One number is correct and in the right spot.</span></div>
             <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> One number is correct, but in the wrong spot.</span></div>
             <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> One number is wrong (it is not in the code at all).</span></div>
         </div>
+
         <div style="background:#f0f0f0; padding:12px; border-radius:4px; font-size:0.8rem; color:#1a1a1a; line-height:1.4; margin-bottom:15px; border-left:4px solid var(--sauce);">
             <p style="margin:0 0 5px 0; font-weight:800;">⚠️ The Shuffled Clue Rule</p>
             The clues (Pizza, Bagel, Donut) <strong>DO NOT</strong> match the order of your numbers.<br><br>
             <em><strong>Example:</strong> If you guess 1-2-3 and the clue is "Pizza," it doesn't mean the number 1 is the Pizza. It just means one of those three numbers is in the right spot!</em>
         </div>
+        
         <p style="font-size: 0.75rem; color: #888; text-align:center; margin-bottom:15px;"><em>All numbers in the code are unique.</em></p>
         <button onclick="toggleModal('info-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">Start</button>
     </div>
@@ -107,8 +110,8 @@
     <div class="modal-content">
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
         <div class="stats-grid">
-            <div><span class="stat-val" id="s-played">0</span><span class="stat-lbl">Played</span></div>
-            <div><span class="stat-val" id="s-wins">0</span><span class="stat-lbl">Wins</span></div>
+            <div><span class="stat-val" id="s-played">0</span><span class="stat-lbl">Games Played</span></div>
+            <div><span class="stat-val" id="s-wins">0</span><span class="stat-lbl">Games Won</span></div>
             <div><span class="stat-val" id="s-avg">0</span><span class="stat-lbl">Avg Row</span></div>
         </div>
         <div class="dist-container">
@@ -134,8 +137,9 @@
     }
     
     const CODE = generateDailyCode();
-    let currentInput = "", tries = 0;
-    let localStats = JSON.parse(localStorage.getItem('pbd_v9')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
+    let currentInput = "";
+    // Using v11 to ensure a clean slate for text/logic sync
+    let localStats = JSON.parse(localStorage.getItem('pbd_v11')) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 
     window.onload = () => { 
         if (localStats.lastDate === today) {
@@ -162,7 +166,6 @@
     }
 
     async function submitGuess() {
-        tries++;
         let p=0, b=0, d=0;
         let gArr = currentInput.split(''), cArr = CODE.split('');
         gArr.forEach((n, i) => { if (n === cArr[i]) p++; else if (cArr.includes(n)) b++; else d++; });
@@ -181,7 +184,7 @@
                 await updateGlobalStats(localStats.history.length);
             }
             localStats.lastDate = today;
-            localStorage.setItem('pbd_v9', JSON.stringify(localStats));
+            localStorage.setItem('pbd_v11', JSON.stringify(localStats));
             showEnd(isWin);
         }
         currentInput = ""; updateDisplay();
@@ -238,16 +241,19 @@
                         <span>${i+1}</span>
                         <div class="dist-bar" style="width:${Math.max((count/maxVal)*100, 8)}%">${count}</div>
                     </div>`).join('');
-            } catch(e) { chart.innerText = "Offline"; }
+            } catch(e) { chart.innerText = "Stats currently unavailable"; }
         }
     }
 
     function share() {
         const win = localStats.history.some(h => h.e === "🍕🍕🍕");
         const emojiGrid = localStats.history.map(h => h.e).join('\n');
-        const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}`;
-        if (navigator.share) { navigator.share({ text: text }); } 
-        else { navigator.clipboard.writeText(text).then(() => alert("Copied!")); }
+        const text = `🍕🥯🍩 PIZZA BAGEL DONUT\nPlayed: ${today}\nScore: ${win ? localStats.history.length : 'X'}/6\n\n${emojiGrid}\n\nhttps://pizzabageldonut.com`;
+        if (navigator.share) { 
+            navigator.share({ text: text }).catch(() => navigator.clipboard.writeText(text)); 
+        } else { 
+            navigator.clipboard.writeText(text).then(() => alert("Box Score Copied!")); 
+        }
     }
 </script>
 </body>
