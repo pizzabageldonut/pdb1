@@ -503,7 +503,12 @@ function getStatsStorageKey() {
     return `pbd_v24_${difficultyKey()}`;
 }
 
+function getDraftStorageKey() {
+    return `pbd_draft_${difficultyKey()}`;
+}
+
 let localStats;
+
 function loadLocalStats() {
     try {
         localStats = JSON.parse(safeGet(getStatsStorageKey())) || {
@@ -527,6 +532,34 @@ loadLocalStats();
 
 function saveLocalStats() {
     safeSet(getStatsStorageKey(), JSON.stringify(localStats));
+}
+
+function saveDraft() {
+    const draft = {
+        history: localStats.history || [],
+        currentInput: currentInput || ""
+    };
+    safeSet(getDraftStorageKey(), JSON.stringify(draft));
+}
+
+function loadDraft() {
+    try {
+        const raw = safeGet(getDraftStorageKey());
+        if (!raw) return { history: [], currentInput: "" };
+        const parsed = JSON.parse(raw);
+        return {
+            history: Array.isArray(parsed.history) ? parsed.history : [],
+            currentInput: typeof parsed.currentInput === "string" ? parsed.currentInput : ""
+        };
+    } catch (e) {
+        return { history: [], currentInput: "" };
+    }
+}
+
+function clearDraft() {
+    try {
+        localStorage.removeItem(getDraftStorageKey());
+    } catch (e) {}
 }
 
 function createPlayerId() {
@@ -568,12 +601,30 @@ function updateDifficultyButtons() {
 }
 
 function setDifficulty(n) {
+    if (localStats.lastDate !== today) {
+        saveDraft();
+    }
+
     DIGITS = n;
     safeSet("pbd_digits", String(n));
     CODE = generateDailyCode();
     loadLocalStats();
     updateDifficultyButtons();
-    resetBoard();
+    createInputBoxes();
+
+    const log = document.getElementById("guess-log");
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
+
+    currentInput = "";
+
+    if (log) log.innerHTML = "";
+    if (shareBtn) {
+        shareBtn.style.opacity = "0.2";
+        shareBtn.style.pointerEvents = "none";
+    }
 
     const infoModal = document.getElementById("info-modal");
     if (infoModal && infoModal.style.display !== "none") {
@@ -582,7 +633,23 @@ function setDifficulty(n) {
 
     if (localStats.lastDate === today) {
         localStats.history.forEach(h => renderRow(h.g, h.e));
-        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
+        return;
+    }
+
+    const draft = loadDraft();
+    localStats.history = draft.history;
+    currentInput = draft.currentInput;
+
+    if (log) log.innerHTML = "";
+    localStats.history.forEach(h => renderRow(h.g, h.e));
+    updateDisplay();
+
+    if (keyboard) keyboard.style.display = "";
+    if (inputBoxes) inputBoxes.style.display = "";
+    if (endMsg) {
+        endMsg.style.display = "none";
+        endMsg.innerText = "";
     }
 }
 
@@ -644,8 +711,16 @@ window.onload = () => {
     if (localStats.lastDate === today) {
         toggleModal("info-modal", false);
         localStats.history.forEach(h => renderRow(h.g, h.e));
-        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
+        return;
     }
+
+    const draft = loadDraft();
+    localStats.history = draft.history;
+    currentInput = draft.currentInput;
+
+    localStats.history.forEach(h => renderRow(h.g, h.e));
+    updateDisplay();
 };
 
 async function toggleModal(id, show) {
@@ -741,6 +816,7 @@ async function submitGuess() {
 
     renderRow(currentInput, emojis);
     localStats.history.push({ g: currentInput, e: emojis });
+    saveDraft();
 
     if (currentInput === CODE || localStats.history.length >= 6) {
         const win = currentInput === CODE;
@@ -771,7 +847,8 @@ async function submitGuess() {
             ts: Date.now()
         });
 
-        showEnd(win);
+        clearDraft();
+        showEnd(win, true);
     }
 
     currentInput = "";
@@ -897,7 +974,7 @@ function renderRow(g, e) {
     }
 }
 
-function showEnd(win) {
+function showEnd(win, autoOpenStats = true) {
     const keyboard = document.getElementById("keyboard");
     const inputBoxes = document.getElementById("input-boxes");
     const msg = document.getElementById("end-msg");
@@ -909,7 +986,7 @@ function showEnd(win) {
     if (msg) {
         msg.style.display = "block";
         msg.innerText = win
-            ? "You Win " + "🍕".repeat(DIGITS)
+            ? "YOU WIN! " + "🍕".repeat(DIGITS)
             : "SORRY! TODAY'S CODE: " + CODE;
     }
 
@@ -918,7 +995,9 @@ function showEnd(win) {
         shareBtn.style.pointerEvents = "auto";
     }
 
-    setTimeout(() => toggleModal("stats-modal", true), 1500);
+    if (autoOpenStats) {
+        setTimeout(() => toggleModal("stats-modal", true), 1500);
+    }
 }
 
 function share() {
