@@ -695,15 +695,7 @@ function ensureStatsElements() {
 
             <div class="stats-card">
                 <div class="stats-title">Global Stats</div>
-                <div class="stats-grid stats-grid-3">
-                    <div class="stat-box">
-                        <div class="stat-value" id="g-played">0</div>
-                        <div class="stat-label">Players</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="g-wins">0</div>
-                        <div class="stat-label">Wins</div>
-                    </div>
+                <div class="stats-grid" style="grid-template-columns: repeat(1, 90px);">
                     <div class="stat-box">
                         <div class="stat-value" id="g-winrate">0%</div>
                         <div class="stat-label">Win Rate</div>
@@ -938,26 +930,26 @@ async function fetchAndRenderGlobal() {
             });
         }
 
-        const maxVal = Math.max(...dist, 1);
+        const percentages = dist.map(count => {
+            if (totalPlayed === 0) return 0;
+            return Math.round((count / totalPlayed) * 100);
+        });
 
-        chart.innerHTML = dist.map((count, i) => {
+        const maxVal = Math.max(...percentages, 1);
+
+        chart.innerHTML = percentages.map((pct, i) => {
             const label = i < 6 ? (i + 1) : "X";
-            const width = count > 0 ? Math.max((count / maxVal) * 100, 8) : 8;
+            const width = pct > 0 ? Math.max((pct / maxVal) * 100, 8) : 8;
 
             return `
                 <div class="dist-row">
                     <span>${label}</span>
-                    <div class="dist-bar" style="width:${width}%">${count}</div>
+                    <div class="dist-bar" style="width:${width}%">${pct}%</div>
                 </div>
             `;
         }).join("");
 
-        const gPlayed = document.getElementById("g-played");
-        const gWins = document.getElementById("g-wins");
         const gWinrate = document.getElementById("g-winrate");
-
-        if (gPlayed) gPlayed.innerText = totalPlayed;
-        if (gWins) gWins.innerText = totalWins;
         if (gWinrate) {
             gWinrate.innerText = totalPlayed === 0
                 ? "0%"
@@ -1055,6 +1047,7 @@ https://pizzabageldonut.com`;
         });
     }
 }
+
     /* Pizza Bagel Donut source ownership: Kelly Choi */
 </script>
 </body>
