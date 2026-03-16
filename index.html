@@ -463,7 +463,6 @@ const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com"
 
 let DIGITS = parseInt(localStorage.getItem("pbd_digits"), 10) || 3;
 let currentInput = "";
-let isErrorState = false;
 
 function difficultyKey() {
     if (DIGITS === 3) return "easy";
@@ -472,7 +471,7 @@ function difficultyKey() {
 }
 
 function getStatsUrl() {
-    return `${FIREBASE_BASE}/stats/${today}/${difficultyKey()}.json`;
+    return `${FIREBASE_BASE}/stats/${difficultyKey()}.json`;
 }
 
 function generateDailyCode() {
@@ -535,7 +534,6 @@ function loadLocalStats() {
         };
     }
 }
-loadLocalStats();
 
 function saveLocalStats() {
     safeSet(getStatsStorageKey(), JSON.stringify(localStats));
@@ -568,6 +566,8 @@ function clearDraft() {
         localStorage.removeItem(getDraftStorageKey());
     } catch (e) {}
 }
+
+loadLocalStats();
 
 function createPlayerId() {
     if (window.crypto && typeof crypto.randomUUID === "function") {
@@ -602,9 +602,14 @@ function createInputBoxes() {
 
 function updateDifficultyButtons() {
     document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
-    if (DIGITS === 3) document.getElementById("easy-btn").classList.add("active");
-    if (DIGITS === 4) document.getElementById("medium-btn").classList.add("active");
-    if (DIGITS === 5) document.getElementById("hard-btn").classList.add("active");
+
+    const easyBtn = document.getElementById("easy-btn");
+    const mediumBtn = document.getElementById("medium-btn");
+    const hardBtn = document.getElementById("hard-btn");
+
+    if (DIGITS === 3 && easyBtn) easyBtn.classList.add("active");
+    if (DIGITS === 4 && mediumBtn) mediumBtn.classList.add("active");
+    if (DIGITS === 5 && hardBtn) hardBtn.classList.add("active");
 }
 
 function setDifficulty(n) {
@@ -754,8 +759,6 @@ function startGame() {
         if (keyboard) keyboard.style.display = "";
         if (inputBoxes) inputBoxes.style.display = "";
         if (endMsg) endMsg.style.display = "none";
-    } else {
-        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
     }
 }
 
@@ -784,17 +787,34 @@ function resetBoard() {
     updateDisplay();
 }
 
+function showInputError() {
+    const boxes = document.querySelectorAll(".digit-box");
+
+    boxes.forEach(box => {
+        box.style.borderColor = "#b22222";
+        box.style.background = "#ffeaea";
+    });
+
+    setTimeout(() => {
+        boxes.forEach(box => {
+            box.style.borderColor = "";
+            box.style.background = "";
+        });
+    }, 500);
+}
+
 function handlePress(val) {
-    if (localStats.lastDate === today || isErrorState) return;
+    if (localStats.lastDate === today) return;
 
     if (val === "DEL") {
         currentInput = currentInput.slice(0, -1);
     } else if (val === "ENT") {
-        if (currentInput.length === DIGITS) {
-            submitGuess();
-        } else {
+        if (currentInput.length !== DIGITS) {
             showInputError();
+            return;
         }
+
+        submitGuess();
         return;
     } else if (currentInput.length < DIGITS && !currentInput.includes(val)) {
         currentInput += val;
@@ -803,40 +823,17 @@ function handlePress(val) {
     updateDisplay();
 }
 
-function showInputError() {
-    isErrorState = true;
-    for (let i = 0; i < DIGITS; i++) {
-        const box = document.getElementById("d" + i);
-        if (box && !currentInput[i]) {
-            box.innerText = "X";
-            box.classList.add("error");
-        }
-    }
-    setTimeout(() => {
-        for (let i = 0; i < DIGITS; i++) {
-            const box = document.getElementById("d" + i);
-            if (box && box.classList.contains("error")) {
-                box.innerText = "";
-                box.classList.remove("error");
-            }
-        }
-        isErrorState = false;
-    }, 600);
-}
-
 function updateDisplay() {
-    if (isErrorState) return;
     for (let i = 0; i < DIGITS; i++) {
         const box = document.getElementById("d" + i);
         if (!box) continue;
         box.innerText = currentInput[i] || "";
         box.classList.toggle("filled", !!currentInput[i]);
-        box.classList.remove("error");
     }
 }
 
 async function submitGuess() {
-    if (currentInput.length !== DIGITS || localStats.lastDate === today) return;
+    if (currentInput.length !== DIGITS) return;
 
     let p = 0, b = 0, d = 0;
     const gArr = currentInput.split("");
@@ -892,7 +889,7 @@ async function submitGuess() {
 }
 
 async function syncGlobalData(game) {
-    const playerPath = `${FIREBASE_BASE}/stats/${today}/${difficultyKey()}/${playerId}.json`;
+    const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerId}_${today}.json`;
 
     try {
         const res = await fetch(`${playerPath}?t=${Date.now()}`, {
@@ -969,7 +966,7 @@ async function fetchAndRenderGlobal() {
 
     } catch (e) {
         console.error("Global stats read error:", e);
-        chart.innerText = "Today's stats unavailable";
+        chart.innerText = "Stats currently unavailable";
     }
 }
 
@@ -1022,7 +1019,7 @@ function showEnd(win, autoOpenStats = true) {
     if (msg) {
         msg.style.display = "block";
         msg.innerText = win
-            ? "YOU WIN! " + "🍕".repeat(DIGITS)
+            ? "You Win " + "🍕".repeat(DIGITS)
             : "SORRY! TODAY'S CODE: " + CODE;
     }
 
