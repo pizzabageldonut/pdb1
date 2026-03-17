@@ -911,7 +911,7 @@ async function fetchAndRenderGlobal() {
         });
         const data = await res.json();
 
-        const dist = [0, 0, 0, 0, 0, 0, 0,0,0];
+        const dist = Array(9).fill(0); // 1–8 + X
         let totalPlayed = 0;
         let totalWins = 0;
 
