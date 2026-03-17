@@ -921,11 +921,11 @@ async function fetchAndRenderGlobal() {
 
                 totalPlayed++;
 
-                if (game.win === true && game.rows >= 1 && game.rows <= 6) {
+                if (game.win === true && game.rows >= 1 && game.rows <= 8) {
                     dist[game.rows - 1]++;
                     totalWins++;
                 } else {
-                    dist[6]++;
+                    dist[8]++;
                 }
             });
         }
