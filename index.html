@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Pizza Bagel Donut</title>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
     <style>
         :root {
             --pizzabg: #faf9f6;
@@ -283,6 +284,15 @@
             text-align: right;
         }
 
+        .dist-row.today-highlight span {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        .dist-row.today-highlight .dist-bar {
+            background: #2e7d32;
+        }
+
         .stats-section {
             margin-top: 10px;
             display: flex;
@@ -417,7 +427,7 @@
         <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
         <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
         <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">
-            Guess the numbers in <strong>8 tries</strong>. Easy uses 3 digits, Medium uses 4, and Hard uses 5.
+            Guess unique numbers in <strong>8 tries</strong>. Easy uses 3 digits, Medium uses 4, and Hard uses 5.
             After each guess, you will receive clues:
         </p>
 
@@ -427,14 +437,47 @@
             <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> A number is not in the puzzle at all.</span></div>
         </div>
 
-        <div style="background:#f0f0f0; padding:12px; border-radius:4px; font-size:0.8rem; color:#1a1a1a; line-height:1.4; margin-bottom:15px; border-left:4px solid var(--sauce);">
-            <p style="margin:0 0 5px 0; font-weight:800;">⚠️ The Shuffled Clue Rule</p>
-            The clues do <strong>not</strong> match the order of your numbers. They only tell you how many of each clue you earned.
-        </div>
+        <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:14px; margin:14px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; text-align:center;">
+            <p style="margin:0 0 10px 0; font-size:0.85rem; font-weight:800; color:var(--sauce);">
+                Example
+            </p>
 
-        <p style="font-size:0.75rem; color:#888; text-align:center; margin-bottom:15px;">
-            <em>All numbers in the code are unique.</em>
-        </p>
+            <p style="font-size:0.85rem; font-weight:700; margin-bottom:8px;">
+                Answer: 507
+            </p>
+
+            <div style="
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                gap:12px;
+                background:#fff;
+                border:1px solid var(--border);
+                border-radius:6px;
+                padding:10px 14px;
+                max-width:260px;
+                margin:0 auto 10px auto;
+            ">
+                <div style="font-size:0.75rem; color:#777; font-weight:700;">
+                    GUESS
+                </div>
+
+                <div style="font-size:1rem; font-weight:800; letter-spacing:4px;">
+                    0 6 7
+                </div>
+
+                <div style="font-size:1.1rem;">
+                    🍕 🥯 🍩
+                </div>
+            </div>
+
+            <p style="margin:0; font-size:0.8rem; color:#444; line-height:1.5;">
+                 <strong>7</strong> is correct and in the right spot → 🍕
+                <br> <strong>0</strong> is in the code but in the wrong spot → 🥯
+                <br> <strong>6</strong> is not in the code → 🍩
+            </p>
+
+        </div>
 
         <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">
             Start
@@ -450,6 +493,17 @@
             Close
         </button>
     </div>
+</div>
+
+<div id="share-card" style="position:absolute; left:-9999px; top:0; width:1080px; background:#faf9f6; color:#1a1a1a; padding:60px; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="text-align:center;">
+        <div style="font-size:72px; letter-spacing:20px;">🍕🥯🍩</div>
+        <div style="margin-top:10px; font-size:34px; font-weight:900; letter-spacing:8px; color:#b22222;">PIZZA BAGEL DONUT</div>
+        <div id="share-card-mode" style="margin-top:20px; font-size:26px; font-weight:700;"></div>
+        <div id="share-card-score" style="margin-top:10px; font-size:28px;"></div>
+    </div>
+    <div id="share-card-grid" style="margin:50px auto 30px; max-width:560px; display:flex; flex-direction:column; gap:14px;"></div>
+    <div style="margin-top:40px; text-align:center; font-size:24px; color:#666;">pizzabageldonut.com</div>
 </div>
 
 <script>
@@ -911,7 +965,7 @@ async function fetchAndRenderGlobal() {
         });
         const data = await res.json();
 
-        const dist = Array(9).fill(0); // 1–8 + X
+        const dist = Array(9).fill(0);
         let totalPlayed = 0;
         let totalWins = 0;
 
@@ -937,12 +991,21 @@ async function fetchAndRenderGlobal() {
 
         const maxVal = Math.max(...percentages, 1);
 
+        let todayBucket = -1;
+        if (localStats.lastDate === today && Array.isArray(localStats.history) && localStats.history.length > 0) {
+            const wonToday = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
+            todayBucket = wonToday
+                ? Math.min(localStats.history.length, 8) - 1
+                : 8;
+        }
+
         chart.innerHTML = percentages.map((pct, i) => {
             const label = i < 8 ? (i + 1) : "X";
             const width = pct > 0 ? Math.max((pct / maxVal) * 100, 8) : 8;
+            const rowClass = i === todayBucket ? "dist-row today-highlight" : "dist-row";
 
             return `
-                <div class="dist-row">
+                <div class="${rowClass}">
                     <span>${label}</span>
                     <div class="dist-bar" style="width:${width}%">${pct}%</div>
                 </div>
@@ -1025,27 +1088,70 @@ function showEnd(win, autoOpenStats = true) {
     }
 }
 
-function share() {
+async function share() {
     const win = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
-    const emojiGrid = localStats.history.map(h => h.e).join("\n");
+    const modeText = difficultyKey().toUpperCase();
+    const resultText = `Result: ${win ? localStats.history.length : "X"}/8`;
 
-    const text = `🍕🥯🍩 PIZZA BAGEL DONUT (${difficultyKey().toUpperCase()})
-Played: ${today}
-Score: ${win ? localStats.history.length : "X"}/8
+    document.getElementById("share-card-mode").innerText = modeText;
+    document.getElementById("share-card-score").innerText = `${today} • ${resultText}`;
 
-${emojiGrid}
+    const grid = document.getElementById("share-card-grid");
+    grid.innerHTML = "";
 
-https://pizzabageldonut.com`;
+    localStats.history.forEach(h => {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+        row.style.alignItems = "center";
+        row.style.background = "#fff";
+        row.style.border = "1px solid #d3d6da";
+        row.style.borderRadius = "8px";
+        row.style.padding = "18px 22px";
 
-    if (navigator.share) {
-        navigator.share({ text }).catch(() => {
-            navigator.clipboard.writeText(text);
-        });
-    } else {
-        navigator.clipboard.writeText(text).then(() => {
-            alert("Box Score Copied!");
-        });
+        const emojis = document.createElement("div");
+        emojis.innerText = h.e;
+        emojis.style.fontSize = "30px";
+        emojis.style.letterSpacing = "4px";
+
+        row.appendChild(emojis);
+        grid.appendChild(row);
+    });
+
+    const card = document.getElementById("share-card");
+    const canvas = await html2canvas(card, {
+        backgroundColor: "#faf9f6",
+        scale: 2
+    });
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return;
+
+    const file = new File([blob], `pizza-bagel-donut-${modeText.toLowerCase()}-${today}.png`, {
+        type: "image/png"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                files: [file],
+                title: "Pizza Bagel Donut",
+                text: `I played Pizza Bagel Donut (${modeText})`
+            });
+            return;
+        } catch (e) {
+            console.error("Native share cancelled or failed:", e);
+        }
     }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
 }
 
     /* Pizza Bagel Donut source ownership: Kelly Choi */
