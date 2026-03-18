@@ -111,6 +111,11 @@
             width: 100%;
             max-width: 300px;
             box-sizing: border-box;
+            min-height: 52px;
+        }
+
+        .guess-row.empty {
+            opacity: 1;
         }
 
         .guess-code {
@@ -118,6 +123,11 @@
             font-size: 1.15rem;
             font-weight: 800;
             letter-spacing: 4px;
+        }
+
+        .guess-code.placeholder,
+        .guess-emojis.placeholder {
+            color: #cfcfcf;
         }
 
         .guess-emojis {
@@ -678,6 +688,32 @@ function createInputBoxes() {
     }
 }
 
+function renderGuessSlots() {
+    const log = document.getElementById("guess-log");
+    if (!log) return;
+
+    log.innerHTML = "";
+
+    for (let i = 0; i < 8; i++) {
+        const entry = localStats.history[i];
+
+        const row = document.createElement("div");
+        row.className = "guess-row" + (entry ? "" : " empty") + (entry && entry.e === "🍕".repeat(DIGITS) ? " winner" : "");
+
+        const codeClass = entry ? "guess-code" : "guess-code placeholder";
+        const emojiClass = entry ? "guess-emojis" : "guess-emojis placeholder";
+
+        row.innerHTML = `
+            <div class="${codeClass}">${entry ? entry.g : " "}</div>
+            <div class="${emojiClass}">${entry ? entry.e : " "}</div>
+        `;
+
+        log.appendChild(row);
+    }
+
+    log.scrollTop = log.scrollHeight;
+}
+
 function updateDifficultyButtons() {
     document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
 
@@ -702,7 +738,6 @@ function setDifficulty(n) {
     updateDifficultyButtons();
     createInputBoxes();
 
-    const log = document.getElementById("guess-log");
     const keyboard = document.getElementById("keyboard");
     const inputBoxes = document.getElementById("input-boxes");
     const endMsg = document.getElementById("end-msg");
@@ -710,7 +745,6 @@ function setDifficulty(n) {
 
     currentInput = "";
 
-    if (log) log.innerHTML = "";
     if (shareBtn) {
         shareBtn.style.opacity = "0.2";
         shareBtn.style.pointerEvents = "none";
@@ -722,7 +756,7 @@ function setDifficulty(n) {
     }
 
     if (localStats.lastDate === today) {
-        localStats.history.forEach(h => renderRow(h.g, h.e));
+        renderGuessSlots();
         showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
         return;
     }
@@ -731,8 +765,7 @@ function setDifficulty(n) {
     localStats.history = draft.history;
     currentInput = draft.currentInput;
 
-    if (log) log.innerHTML = "";
-    localStats.history.forEach(h => renderRow(h.g, h.e));
+    renderGuessSlots();
     updateDisplay();
 
     if (keyboard) keyboard.style.display = "";
@@ -792,7 +825,7 @@ window.onload = () => {
 
     if (localStats.lastDate === today) {
         toggleModal("info-modal", false);
-        localStats.history.forEach(h => renderRow(h.g, h.e));
+        renderGuessSlots();
         showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
         return;
     }
@@ -801,7 +834,7 @@ window.onload = () => {
     localStats.history = draft.history;
     currentInput = draft.currentInput;
 
-    localStats.history.forEach(h => renderRow(h.g, h.e));
+    renderGuessSlots();
     updateDisplay();
 };
 
@@ -824,6 +857,7 @@ function startGame() {
     const endMsg = document.getElementById("end-msg");
 
     createInputBoxes();
+    renderGuessSlots();
 
     if (localStats.lastDate !== today) {
         if (keyboard) keyboard.style.display = "";
@@ -835,13 +869,11 @@ function startGame() {
 function resetBoard() {
     currentInput = "";
 
-    const log = document.getElementById("guess-log");
     const keyboard = document.getElementById("keyboard");
     const inputBoxes = document.getElementById("input-boxes");
     const endMsg = document.getElementById("end-msg");
     const shareBtn = document.getElementById("share-icon");
 
-    if (log) log.innerHTML = "";
     if (keyboard) keyboard.style.display = "";
     if (inputBoxes) inputBoxes.style.display = "";
     if (endMsg) {
@@ -854,6 +886,7 @@ function resetBoard() {
     }
 
     createInputBoxes();
+    renderGuessSlots();
     updateDisplay();
 }
 
@@ -917,8 +950,8 @@ async function submitGuess() {
 
     const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
 
-    renderRow(currentInput, emojis);
     localStats.history.push({ g: currentInput, e: emojis });
+    renderGuessSlots();
     saveDraft();
 
     if (currentInput === CODE || localStats.history.length >= 8) {
@@ -1072,18 +1105,8 @@ function updateStatsUI() {
 }
 
 function renderRow(g, e) {
-    const row = document.createElement("div");
-    row.className = "guess-row" + (e === "🍕".repeat(DIGITS) ? " winner" : "");
-    row.innerHTML = `
-        <div class="guess-code">${g}</div>
-        <div class="guess-emojis">${e}</div>
-    `;
-
-    const log = document.getElementById("guess-log");
-    if (log) {
-        log.appendChild(row);
-        log.scrollTop = log.scrollHeight;
-    }
+    localStats.history.push({ g, e });
+    renderGuessSlots();
 }
 
 function showEnd(win, autoOpenStats = true) {
