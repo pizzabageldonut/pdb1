@@ -231,6 +231,24 @@
             cursor: pointer;
         }
 
+        .site-link-wrap {
+            text-align: center;
+            padding: 8px 0 2px;
+            background: var(--pizzabg);
+        }
+
+        .site-link {
+            font-size: 0.9rem;
+            color: var(--sauce);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .site-link:hover,
+        .site-link:focus {
+            text-decoration: underline;
+        }
+
         .modal {
             display: none;
             position: fixed;
@@ -417,6 +435,12 @@
             <div class="tool-btn" onclick="toggleModal('info-modal', true)">❓</div>
             <div id="share-icon" class="tool-btn" style="opacity:0.2; pointer-events:none;" onclick="share()">📤</div>
             <div class="tool-btn" onclick="toggleModal('stats-modal', true)">📊</div>
+        </div>
+
+        <div class="site-link-wrap">
+            <a href="https://pizzabageldonut.com" target="_blank" rel="noopener noreferrer" class="site-link">
+                pizzabageldonut.com
+            </a>
         </div>
     </div>
 </div>
@@ -1136,7 +1160,7 @@ async function share() {
             await navigator.share({
                 files: [file],
                 title: "Pizza Bagel Donut",
-                text: `I played Pizza Bagel Donut (${modeText})`
+                text: `I played Pizza Bagel Donut (${modeText})\n\nhttps://pizzabageldonut.com`
             });
             return;
         } catch (e) {
