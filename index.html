@@ -4,9 +4,25 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pizza Bagel Donut</title>
+    
+    <title>Pizza Bagel Donut | The Daily Number Guessing Game</title>
+    <meta name="description" content="Play pizzabageldonut, the daily logic puzzle. Guess unique numbers in 8 tries using Pizza, Bagel, and Donut clues.">
+    <meta name="keywords" content="pizzabageldonut, pizza bagel donut game, daily puzzle, logic game">
+    <link rel="canonical" href="https://pizzabageldonut.com/">
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Pizza Bagel Donut",
+      "operatingSystem": "Web",
+      "applicationCategory": "GameApplication"
+    }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    
     <style>
         :root {
             --pizzabg: #faf9f6;
@@ -115,35 +131,11 @@
             min-height: 52px;
         }
 
-        .guess-row.empty {
-            opacity: 1;
-        }
-
-        .guess-code {
-            font-family: 'Courier New', monospace;
-            font-size: 1.15rem;
-            font-weight: 800;
-            letter-spacing: 4px;
-        }
-
-        .guess-code.placeholder,
-        .guess-emojis.placeholder {
-            color: #cfcfcf;
-        }
-
-        .guess-emojis {
-            display: flex;
-            justify-content: flex-end;
-            font-size: 1.05rem;
-            flex-wrap: wrap;
-            gap: 2px;
-        }
-
-        .guess-row.winner {
-            background-color: var(--pizzabox);
-            border-color: #c99b5a;
-            color: #fff;
-        }
+        .guess-row.empty { opacity: 1; }
+        .guess-code { font-family: 'Courier New', monospace; font-size: 1.15rem; font-weight: 800; letter-spacing: 4px; }
+        .guess-code.placeholder, .guess-emojis.placeholder { color: #cfcfcf; }
+        .guess-emojis { display: flex; justify-content: flex-end; font-size: 1.05rem; flex-wrap: wrap; gap: 2px; }
+        .guess-row.winner { background-color: var(--pizzabox); border-color: #c99b5a; color: #fff; }
 
         .controls-area {
             background: var(--pizzabg);
@@ -179,219 +171,45 @@
             transition: all 0.2s ease;
         }
 
-        .digit-box.filled {
-            background: #000;
-            color: #fff;
-            border-color: #000;
-        }
+        .digit-box.filled { background: #000; color: #fff; border-color: #000; }
+        .digit-box.error { color: var(--sauce); border-color: var(--sauce); }
 
-        .digit-box.error {
-            color: var(--sauce);
-            border-color: var(--sauce);
-        }
-
-        .keypad-area {
-            padding: 5px;
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-
-        .key-row {
-            display: flex;
-            gap: 5px;
-            width: 100%;
-        }
-
+        .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
+        .key-row { display: flex; gap: 5px; width: 100%; }
         .key {
-            flex: 1;
-            height: 44px;
-            background: var(--key);
-            border-radius: 4px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
-            cursor: pointer;
-            user-select: none;
+            flex: 1; height: 44px; background: var(--key); border-radius: 4px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
+        .key:active { background: #ccc; }
+        .key.action { background: #c5c5c3; font-size: 0.7rem; letter-spacing: 0.5px; flex: 2; }
 
-        .key:active {
-            background: #ccc;
-        }
+        .toolbar { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
+        .tool-btn { font-size: 1.5rem; cursor: pointer; }
 
-        .key.action {
-            background: #c5c5c3;
-            font-size: 0.7rem;
-            letter-spacing: 0.5px;
-            flex: 2;
-        }
+        .site-link-wrap { text-align: center; padding: 8px 0 2px; background: var(--pizzabg); }
+        .site-link { font-size: 0.9rem; color: var(--sauce); text-decoration: none; font-weight: 700; }
+        .site-link:hover { text-decoration: underline; }
 
-        .toolbar {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            padding: 10px 0;
-            border-top: 1px solid var(--border);
-        }
+        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 20px; box-sizing: border-box; overflow-y: auto; }
+        .modal-content { max-width: 400px; margin: 0 auto; text-align: center; }
+        .rule-line { display: flex; align-items: center; gap: 15px; margin: 12px 0; font-size: 0.95rem; line-height: 1.4; text-align: left; }
 
-        .tool-btn {
-            font-size: 1.5rem;
-            cursor: pointer;
-        }
+        .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.8rem; font-weight: 700; }
+        .dist-row span { width: 16px; text-align: center; }
+        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 25px; text-align: right; }
+        .dist-row.today-highlight span { color: #2e7d32; font-weight: 800; }
+        .dist-row.today-highlight .dist-bar { background: #2e7d32; }
 
-        .site-link-wrap {
-            text-align: center;
-            padding: 8px 0 2px;
-            background: var(--pizzabg);
-        }
-
-        .site-link {
-            font-size: 0.9rem;
-            color: var(--sauce);
-            text-decoration: none;
-            font-weight: 700;
-        }
-
-        .site-link:hover,
-        .site-link:focus {
-            text-decoration: underline;
-        }
-
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 100;
-            left: 0;
-            top: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255,255,255,0.98);
-            padding: 20px;
-            box-sizing: border-box;
-            overflow-y: auto;
-        }
-
-        .modal-content {
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: center;
-        }
-
-        .rule-line {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin: 12px 0;
-            font-size: 0.95rem;
-            line-height: 1.4;
-            text-align: left;
-        }
-
-        .dist-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 6px;
-            font-size: 0.8rem;
-            font-weight: 700;
-        }
-
-        .dist-row span {
-            width: 16px;
-            text-align: center;
-        }
-
-        .dist-bar {
-            background: #787c7e;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 2px;
-            min-width: 25px;
-            text-align: right;
-        }
-
-        .dist-row.today-highlight span {
-            color: #2e7d32;
-            font-weight: 800;
-        }
-
-        .dist-row.today-highlight .dist-bar {
-            background: #2e7d32;
-        }
-
-        .stats-section {
-            margin-top: 10px;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-            text-align: center;
-            width: 100%;
-        }
-
-        .stats-card {
-            border-top: 1px solid #d3d6da;
-            padding-top: 10px;
-            width: 100%;
-        }
-
-        .stats-title {
-            font-size: 12px;
-            font-weight: 700;
-            margin-bottom: 6px;
-            letter-spacing: .03em;
-            color: #1a1a1a;
-        }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 70px);
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .stat-box {
-            text-align: center;
-            padding: 4px 0;
-        }
-
-        .stat-value {
-            font-size: 18px;
-            font-weight: 700;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 10px;
-            color: #777;
-            margin-top: 2px;
-            letter-spacing: .04em;
-        }
-
-        .dist-chart {
-            width: 100%;
-            margin-top: 8px;
-        }
-
-        #stats-container {
-            width: 100%;
-        }
-
-        @media (max-width: 420px) {
-            .stats-grid {
-                grid-template-columns: repeat(2, 70px);
-            }
-            .guess-row {
-                max-width: 260px;
-            }
-            .guess-code {
-                font-size: 1rem;
-                letter-spacing: 3px;
-            }
-        }
+        .stats-section { margin-top: 10px; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
+        .stats-card { border-top: 1px solid #d3d6da; padding-top: 10px; width: 100%; }
+        .stats-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #1a1a1a; }
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 70px); justify-content: center; gap: 12px; }
+        .stat-box { text-align: center; padding: 4px 0; }
+        .stat-value { font-size: 18px; font-weight: 700; }
+        .stat-label { font-size: 10px; color: #777; margin-top: 2px; }
+        .dist-chart { width: 100%; margin-top: 8px; }
     </style>
 </head>
 <body>
@@ -408,7 +226,6 @@
 
 <div id="game">
     <div id="guess-log"></div>
-
     <div class="controls-area">
         <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom:1px solid var(--border);"></div>
         <div class="input-display-area" id="input-boxes"></div>
@@ -432,27 +249,45 @@
                 <div class="key action" style="background:var(--sauce); color:white;" onclick="handlePress('ENT')">ENTER</div>
             </div>
         </div>
-
         <div class="toolbar">
             <div class="tool-btn" onclick="toggleModal('info-modal', true)">❓</div>
             <div id="share-icon" class="tool-btn" style="opacity:0.2; pointer-events:none;" onclick="share()">📤</div>
             <div class="tool-btn" onclick="toggleModal('stats-modal', true)">📊</div>
         </div>
-
         <div class="site-link-wrap">
-            <a href="https://pizzabageldonut.com" target="_blank" rel="noopener noreferrer" class="site-link">pizzabageldonut.com</a>
+            <a href="https://pizzabageldonut.com" target="_blank" class="site-link">pizzabageldonut.com</a>
         </div>
+    </div>
+</div>
+
+<div class="modal" id="info-modal" style="display:block;">
+    <div class="modal-content">
+        <p>🍕 🥯 🍩</p>
+        <h2>Welcome to Pizza Bagel Donut!</h2>
+        <p>Guess unique numbers in 8 tries.</p>
+        <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> Correct and in the right spot.</span></div>
+        <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> Correct, but in wrong spot.</span></div>
+        <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> Not in the puzzle.</span></div>
+        <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; cursor:pointer;">START</button>
+    </div>
+</div>
+
+<div class="modal" id="stats-modal">
+    <div class="modal-content">
+        <h2 style="color:var(--sauce);">Statistics</h2>
+        <div id="stats-container"></div>
+        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; cursor:pointer;">CLOSE</button>
     </div>
 </div>
 
 <script>
 const now = new Date();
 const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
-
 const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
 
 let DIGITS = parseInt(localStorage.getItem("pbd_digits"), 10) || 3;
 let currentInput = "";
+let localStats;
 
 function difficultyKey() {
     if (DIGITS === 3) return "easy";
@@ -460,9 +295,17 @@ function difficultyKey() {
     return "hard";
 }
 
-function getStatsUrl() {
-    return `${FIREBASE_BASE}/stats/${difficultyKey()}.json`;
+function getStatsUrl() { return `${FIREBASE_BASE}/stats/${difficultyKey()}.json`; }
+
+function getPlayerId() {
+    let id = localStorage.getItem("pbd_player_id");
+    if (!id) {
+        id = 'p' + Math.random().toString(36).substr(2, 9) + Date.now();
+        localStorage.setItem("pbd_player_id", id);
+    }
+    return id;
 }
+const playerId = getPlayerId();
 
 function generateDailyCode() {
     const seedBase = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0) + DIGITS * 31;
@@ -474,41 +317,141 @@ function generateDailyCode() {
     }
     return res;
 }
-
 let CODE = generateDailyCode();
 
-// PERSISTENT PLAYER ID LOGIC
-function getPlayerId() {
-    let id = localStorage.getItem("pbd_player_id");
-    if (!id) {
-        id = 'p' + Math.random().toString(36).substr(2, 9) + Date.now();
-        localStorage.setItem("pbd_player_id", id);
-    }
-    return id;
+function loadLocalStats() {
+    const key = `pbd_v24_${difficultyKey()}`;
+    localStats = JSON.parse(localStorage.getItem(key)) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
 }
-const playerId = getPlayerId();
+
+function saveLocalStats() {
+    localStorage.setItem(`pbd_v24_${difficultyKey()}`, JSON.stringify(localStats));
+}
+
+function createInputBoxes() {
+    const container = document.getElementById("input-boxes");
+    container.innerHTML = "";
+    for (let i = 0; i < DIGITS; i++) {
+        const box = document.createElement("div");
+        box.className = "digit-box";
+        box.id = "d" + i;
+        container.appendChild(box);
+    }
+}
+
+function renderGuessSlots() {
+    const log = document.getElementById("guess-log");
+    log.innerHTML = "";
+    for (let i = 0; i < 8; i++) {
+        const entry = localStats.history[i];
+        const row = document.createElement("div");
+        row.className = "guess-row" + (entry ? "" : " empty") + (entry && entry.e === "🍕".repeat(DIGITS) ? " winner" : "");
+        row.innerHTML = `<div class="guess-code">${entry ? entry.g : " "}</div><div class="guess-emojis">${entry ? entry.e : " "}</div>`;
+        log.appendChild(row);
+    }
+}
+
+function handlePress(val) {
+    if (localStats.lastDate === today) return;
+    if (val === 'DEL') currentInput = currentInput.slice(0, -1);
+    else if (val === 'ENT') {
+        if (currentInput.length === DIGITS) submitGuess();
+    } else if (currentInput.length < DIGITS && !currentInput.includes(val)) {
+        currentInput += val;
+    }
+    updateDisplay();
+}
+
+function updateDisplay() {
+    for (let i = 0; i < DIGITS; i++) {
+        const box = document.getElementById("d" + i);
+        box.innerText = currentInput[i] || "";
+        box.classList.toggle("filled", !!currentInput[i]);
+    }
+}
+
+async function submitGuess() {
+    let p = 0, b = 0, d = 0;
+    const gArr = currentInput.split("");
+    const cArr = CODE.split("");
+    gArr.forEach((n, i) => {
+        if (n === cArr[i]) p++;
+        else if (cArr.includes(n)) b++;
+        else d++;
+    });
+    const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
+    localStats.history.push({ g: currentInput, e: emojis });
+    renderGuessSlots();
+
+    if (currentInput === CODE || localStats.history.length >= 8) {
+        const win = currentInput === CODE;
+        localStats.played++;
+        if (win) {
+            localStats.wins++;
+            localStats.totalRows += localStats.history.length;
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
+        localStats.lastDate = today;
+        saveLocalStats();
+        await syncGlobalData({ win, rows: localStats.history.length, digits: DIGITS, ts: Date.now() });
+        showEnd(win);
+    }
+    currentInput = "";
+}
 
 async function syncGlobalData(game) {
-    // We store using a composite key: playerID + date
-    // This allows the rule ".write": "!data.exists()" to prevent the SAME user 
-    // from submitting twice or different users from touching each other's data.
-    const playerDateKey = `${playerId}_${today}`;
-    const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerDateKey}.json`;
-
+    const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerId}_${today}.json`;
     try {
-        await fetch(playerPath, {
-            method: "PUT",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(game)
-        });
-    } catch (e) {
-        console.error("Global stats write error:", e);
-    }
+        await fetch(playerPath, { method: "PUT", body: JSON.stringify(game) });
+    } catch (e) { console.error(e); }
 }
 
-// ... Rest of your UI logic (handlePress, render, etc) goes here ...
-// Ensure you call syncGlobalData inside submitGuess when the game ends.
+function showEnd(win) {
+    const msg = document.getElementById("end-msg");
+    msg.style.display = "block";
+    msg.innerText = win ? "CONGRATS! SEE YOU TOMORROW." : `GAME OVER. CODE WAS ${CODE}`;
+    document.getElementById("keyboard").style.display = "none";
+    document.getElementById("input-boxes").style.display = "none";
+    document.getElementById("share-icon").style.opacity = "1";
+    document.getElementById("share-icon").style.pointerEvents = "auto";
+}
 
+function setDifficulty(n) {
+    DIGITS = n;
+    localStorage.setItem("pbd_digits", n);
+    CODE = generateDailyCode();
+    loadLocalStats();
+    createInputBoxes();
+    renderGuessSlots();
+    document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
+    if (n === 3) document.getElementById("easy-btn").classList.add("active");
+    if (n === 4) document.getElementById("medium-btn").classList.add("active");
+    if (n === 5) document.getElementById("hard-btn").classList.add("active");
+    if (localStats.lastDate === today) showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
+}
+
+function toggleModal(id, show) {
+    document.getElementById(id).style.display = show ? "block" : "none";
+    if (id === 'stats-modal' && show) updateStatsUI();
+}
+
+function updateStatsUI() {
+    const container = document.getElementById("stats-container");
+    const wr = localStats.played ? Math.round((localStats.wins / localStats.played) * 100) : 0;
+    container.innerHTML = `
+        <div class="stats-grid">
+            <div class="stat-box"><div class="stat-value">${localStats.played}</div><div class="stat-label">Played</div></div>
+            <div class="stat-box"><div class="stat-value">${wr}%</div><div class="stat-label">Win %</div></div>
+        </div>
+    `;
+}
+
+function startGame() { toggleModal('info-modal', false); }
+
+window.onload = () => {
+    loadLocalStats();
+    setDifficulty(DIGITS);
+};
 </script>
 </body>
 </html>
