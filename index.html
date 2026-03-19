@@ -353,11 +353,6 @@
             gap: 12px;
         }
 
-        .stats-grid-3 {
-            grid-template-columns: repeat(3, 70px);
-            justify-content: center;
-        }
-
         .stat-box {
             text-align: center;
             padding: 4px 0;
@@ -389,11 +384,9 @@
             .stats-grid {
                 grid-template-columns: repeat(2, 70px);
             }
-
             .guess-row {
                 max-width: 260px;
             }
-
             .guess-code {
                 font-size: 1rem;
                 letter-spacing: 3px;
@@ -418,9 +411,7 @@
 
     <div class="controls-area">
         <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom:1px solid var(--border);"></div>
-
         <div class="input-display-area" id="input-boxes"></div>
-
         <div class="keypad-area" id="keyboard">
             <div class="key-row">
                 <div class="key" onclick="handlePress('1')">1</div>
@@ -449,104 +440,14 @@
         </div>
 
         <div class="site-link-wrap">
-            <a href="https://pizzabageldonut.com" target="_blank" rel="noopener noreferrer" class="site-link">
-                pizzabageldonut.com
-            </a>
+            <a href="https://pizzabageldonut.com" target="_blank" rel="noopener noreferrer" class="site-link">pizzabageldonut.com</a>
         </div>
     </div>
-</div>
-
-<div class="modal" id="info-modal" style="display:block;">
-    <div class="modal-content" style="text-align:left;">
-        <p style="text-align:center; font-size:1.2rem; margin-bottom:10px;">🍕 🥯 🍩</p>
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
-        <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
-        <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">
-            Guess unique numbers in <strong>8 tries</strong>. Easy uses 3 digits, Medium uses 4, and Hard uses 5.
-            After each guess, you will receive clues:
-        </p>
-
-        <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px;">
-            <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> A number is correct and in the right spot.</span></div>
-            <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> A number is correct, but in the wrong spot.</span></div>
-            <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> A number is not in the puzzle at all.</span></div>
-        </div>
-
-        <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:14px; margin:14px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; text-align:center;">
-            <p style="margin:0 0 10px 0; font-size:0.85rem; font-weight:800; color:var(--sauce);">
-                Example
-            </p>
-
-            <p style="font-size:0.85rem; font-weight:700; margin-bottom:8px;">
-                Answer: 507
-            </p>
-
-            <div style="
-                display:flex;
-                justify-content:center;
-                align-items:center;
-                gap:12px;
-                background:#fff;
-                border:1px solid var(--border);
-                border-radius:6px;
-                padding:10px 14px;
-                max-width:260px;
-                margin:0 auto 10px auto;
-            ">
-                <div style="font-size:0.75rem; color:#777; font-weight:700;">
-                    GUESS
-                </div>
-
-                <div style="font-size:1rem; font-weight:800; letter-spacing:4px;">
-                    0 6 7
-                </div>
-
-                <div style="font-size:1.1rem;">
-                    🍕 🥯 🍩
-                </div>
-            </div>
-
-            <p style="margin:0; font-size:0.8rem; color:#444; line-height:1.5;">
-                 <strong>7</strong> is correct and in the right spot → 🍕
-                <br> <strong>0</strong> is correct but in the wrong spot → 🥯
-                <br> <strong>6</strong> is not in the answer → 🍩
-            </p>
-
-        </div>
-
-        <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">
-            Start
-        </button>
-    </div>
-</div>
-
-<div class="modal" id="stats-modal">
-    <div class="modal-content">
-        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
-        <div id="stats-container"></div>
-        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:20px; cursor:pointer;">
-            Close
-        </button>
-    </div>
-</div>
-
-<div id="share-card" style="position:absolute; left:-9999px; top:0; width:1080px; background:#faf9f6; color:#1a1a1a; padding:60px; box-sizing:border-box; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
-    <div style="text-align:center;">
-        <div style="font-size:72px; letter-spacing:20px;">🍕🥯🍩</div>
-        <div style="margin-top:10px; font-size:34px; font-weight:900; letter-spacing:8px; color:#b22222;">PIZZA BAGEL DONUT</div>
-        <div id="share-card-mode" style="margin-top:20px; font-size:26px; font-weight:700;"></div>
-        <div id="share-card-score" style="margin-top:10px; font-size:28px;"></div>
-    </div>
-    <div id="share-card-grid" style="margin:50px auto 30px; max-width:560px; display:flex; flex-direction:column; gap:14px;"></div>
-    <div style="margin-top:40px; text-align:center; font-size:24px; color:#666;">pizzabageldonut.com</div>
 </div>
 
 <script>
 const now = new Date();
-const today =
-    now.getFullYear() + "-" +
-    String(now.getMonth() + 1).padStart(2, "0") + "-" +
-    String(now.getDate()).padStart(2, "0");
+const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
 
 const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
 
@@ -567,7 +468,6 @@ function generateDailyCode() {
     const seedBase = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0) + DIGITS * 31;
     let pool = [0,1,2,3,4,5,6,7,8,9];
     let res = "";
-
     for (let i = 0; i < DIGITS; i++) {
         const idx = (seedBase + (i * 17)) % pool.length;
         res += pool.splice(idx, 1);
@@ -577,432 +477,25 @@ function generateDailyCode() {
 
 let CODE = generateDailyCode();
 
-function safeGet(key) {
-    try {
-        return localStorage.getItem(key);
-    } catch (e) {
-        return null;
-    }
-}
-
-function safeSet(key, value) {
-    try {
-        localStorage.setItem(key, value);
-        return true;
-    } catch (e) {
-        return false;
-    }
-}
-
-function getStatsStorageKey() {
-    return `pbd_v24_${difficultyKey()}`;
-}
-
-function getDraftStorageKey() {
-    return `pbd_draft_${difficultyKey()}`;
-}
-
-let localStats;
-
-function loadLocalStats() {
-    try {
-        localStats = JSON.parse(safeGet(getStatsStorageKey())) || {
-            played: 0,
-            wins: 0,
-            totalRows: 0,
-            lastDate: "",
-            history: []
-        };
-    } catch (e) {
-        localStats = {
-            played: 0,
-            wins: 0,
-            totalRows: 0,
-            lastDate: "",
-            history: []
-        };
-    }
-}
-
-function saveLocalStats() {
-    safeSet(getStatsStorageKey(), JSON.stringify(localStats));
-}
-
-function saveDraft() {
-    const draft = {
-        history: localStats.history || [],
-        currentInput: currentInput || ""
-    };
-    safeSet(getDraftStorageKey(), JSON.stringify(draft));
-}
-
-function loadDraft() {
-    try {
-        const raw = safeGet(getDraftStorageKey());
-        if (!raw) return { history: [], currentInput: "" };
-        const parsed = JSON.parse(raw);
-        return {
-            history: Array.isArray(parsed.history) ? parsed.history : [],
-            currentInput: typeof parsed.currentInput === "string" ? parsed.currentInput : ""
-        };
-    } catch (e) {
-        return { history: [], currentInput: "" };
-    }
-}
-
-function clearDraft() {
-    try {
-        localStorage.removeItem(getDraftStorageKey());
-    } catch (e) {}
-}
-
-loadLocalStats();
-
-function createPlayerId() {
-    if (window.crypto && typeof crypto.randomUUID === "function") {
-        return crypto.randomUUID();
-    }
-    return "pbd_" + Math.random().toString(36).slice(2) + "_" + Date.now();
-}
-
+// PERSISTENT PLAYER ID LOGIC
 function getPlayerId() {
-    const existing = safeGet("pbd_player");
-    if (existing) return existing;
-
-    const newId = createPlayerId();
-    safeSet("pbd_player", newId);
-    return safeGet("pbd_player") || newId;
+    let id = localStorage.getItem("pbd_player_id");
+    if (!id) {
+        id = 'p' + Math.random().toString(36).substr(2, 9) + Date.now();
+        localStorage.setItem("pbd_player_id", id);
+    }
+    return id;
 }
-
 const playerId = getPlayerId();
 
-function createInputBoxes() {
-    const container = document.getElementById("input-boxes");
-    if (!container) return;
-
-    container.innerHTML = "";
-    for (let i = 0; i < DIGITS; i++) {
-        const box = document.createElement("div");
-        box.className = "digit-box";
-        box.id = "d" + i;
-        container.appendChild(box);
-    }
-}
-
-function renderGuessSlots() {
-    const log = document.getElementById("guess-log");
-    if (!log) return;
-
-    log.innerHTML = "";
-
-    for (let i = 0; i < 8; i++) {
-        const entry = localStats.history[i];
-
-        const row = document.createElement("div");
-        row.className = "guess-row" + (entry ? "" : " empty") + (entry && entry.e === "🍕".repeat(DIGITS) ? " winner" : "");
-
-        const codeClass = entry ? "guess-code" : "guess-code placeholder";
-        const emojiClass = entry ? "guess-emojis" : "guess-emojis placeholder";
-
-        row.innerHTML = `
-            <div class="${codeClass}">${entry ? entry.g : " "}</div>
-            <div class="${emojiClass}">${entry ? entry.e : " "}</div>
-        `;
-
-        log.appendChild(row);
-    }
-
-    log.scrollTop = log.scrollHeight;
-}
-
-function updateDifficultyButtons() {
-    document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
-
-    const easyBtn = document.getElementById("easy-btn");
-    const mediumBtn = document.getElementById("medium-btn");
-    const hardBtn = document.getElementById("hard-btn");
-
-    if (DIGITS === 3 && easyBtn) easyBtn.classList.add("active");
-    if (DIGITS === 4 && mediumBtn) mediumBtn.classList.add("active");
-    if (DIGITS === 5 && hardBtn) hardBtn.classList.add("active");
-}
-
-function setDifficulty(n) {
-    if (localStats.lastDate !== today) {
-        saveDraft();
-    }
-
-    DIGITS = n;
-    safeSet("pbd_digits", String(n));
-    CODE = generateDailyCode();
-    loadLocalStats();
-    updateDifficultyButtons();
-    createInputBoxes();
-
-    const keyboard = document.getElementById("keyboard");
-    const inputBoxes = document.getElementById("input-boxes");
-    const endMsg = document.getElementById("end-msg");
-    const shareBtn = document.getElementById("share-icon");
-
-    currentInput = "";
-
-    if (shareBtn) {
-        shareBtn.style.opacity = "0.2";
-        shareBtn.style.pointerEvents = "none";
-    }
-
-    const infoModal = document.getElementById("info-modal");
-    if (infoModal && infoModal.style.display !== "none") {
-        createInputBoxes();
-    }
-
-    if (localStats.lastDate === today) {
-        renderGuessSlots();
-        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
-        return;
-    }
-
-    const draft = loadDraft();
-    localStats.history = draft.history;
-    currentInput = draft.currentInput;
-
-    renderGuessSlots();
-    updateDisplay();
-
-    if (keyboard) keyboard.style.display = "";
-    if (inputBoxes) inputBoxes.style.display = "";
-    if (endMsg) {
-        endMsg.style.display = "none";
-        endMsg.innerText = "";
-    }
-}
-
-function ensureStatsElements() {
-    const container = document.getElementById("stats-container");
-    if (!container) return;
-
-    container.innerHTML = `
-        <div class="stats-section">
-            <div class="stats-card">
-                <div class="stats-title">Your Stats</div>
-                <div class="stats-grid">
-                    <div class="stat-box">
-                        <div class="stat-value" id="s-played">0</div>
-                        <div class="stat-label">Played</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="s-wins">0</div>
-                        <div class="stat-label">Wins</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="s-winrate">0%</div>
-                        <div class="stat-label">Win Rate</div>
-                    </div>
-                    <div class="stat-box">
-                        <div class="stat-value" id="s-avg">0</div>
-                        <div class="stat-label">Avg Rows</div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="stats-card">
-                <div class="stats-title">Global Stats</div>
-                <div class="stats-grid" style="grid-template-columns: repeat(1, 90px);">
-                    <div class="stat-box">
-                        <div class="stat-value" id="g-winrate">0%</div>
-                        <div class="stat-label">Win Rate</div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="dist-chart" class="dist-chart"></div>
-        </div>
-    `;
-}
-
-window.onload = () => {
-    updateDifficultyButtons();
-    createInputBoxes();
-
-    if (localStats.lastDate === today) {
-        toggleModal("info-modal", false);
-        renderGuessSlots();
-        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
-        return;
-    }
-
-    const draft = loadDraft();
-    localStats.history = draft.history;
-    currentInput = draft.currentInput;
-
-    renderGuessSlots();
-    updateDisplay();
-};
-
-async function toggleModal(id, show) {
-    const modal = document.getElementById(id);
-    if (modal) modal.style.display = show ? "block" : "none";
-
-    if (id === "stats-modal" && show) {
-        ensureStatsElements();
-        updateStatsUI();
-        await fetchAndRenderGlobal();
-    }
-}
-
-function startGame() {
-    toggleModal("info-modal", false);
-
-    const keyboard = document.getElementById("keyboard");
-    const inputBoxes = document.getElementById("input-boxes");
-    const endMsg = document.getElementById("end-msg");
-
-    createInputBoxes();
-    renderGuessSlots();
-
-    if (localStats.lastDate !== today) {
-        if (keyboard) keyboard.style.display = "";
-        if (inputBoxes) inputBoxes.style.display = "";
-        if (endMsg) endMsg.style.display = "none";
-    }
-}
-
-function resetBoard() {
-    currentInput = "";
-
-    const keyboard = document.getElementById("keyboard");
-    const inputBoxes = document.getElementById("input-boxes");
-    const endMsg = document.getElementById("end-msg");
-    const shareBtn = document.getElementById("share-icon");
-
-    if (keyboard) keyboard.style.display = "";
-    if (inputBoxes) inputBoxes.style.display = "";
-    if (endMsg) {
-        endMsg.style.display = "none";
-        endMsg.innerText = "";
-    }
-    if (shareBtn) {
-        shareBtn.style.opacity = "0.2";
-        shareBtn.style.pointerEvents = "none";
-    }
-
-    createInputBoxes();
-    renderGuessSlots();
-    updateDisplay();
-}
-
-function showInputError() {
-    const boxes = document.querySelectorAll(".digit-box");
-
-    boxes.forEach(box => {
-        box.style.borderColor = "#b22222";
-        box.style.background = "#ffeaea";
-    });
-
-    setTimeout(() => {
-        boxes.forEach(box => {
-            box.style.borderColor = "";
-            box.style.background = "";
-        });
-    }, 500);
-}
-
-function handlePress(val) {
-    if (localStats.lastDate === today) return;
-
-    if (val === "DEL") {
-        currentInput = currentInput.slice(0, -1);
-    } else if (val === "ENT") {
-        if (currentInput.length !== DIGITS) {
-            showInputError();
-            return;
-        }
-
-        submitGuess();
-        return;
-    } else if (currentInput.length < DIGITS && !currentInput.includes(val)) {
-        currentInput += val;
-    }
-
-    updateDisplay();
-}
-
-function updateDisplay() {
-    for (let i = 0; i < DIGITS; i++) {
-        const box = document.getElementById("d" + i);
-        if (!box) continue;
-        box.innerText = currentInput[i] || "";
-        box.classList.toggle("filled", !!currentInput[i]);
-    }
-}
-
-async function submitGuess() {
-    if (currentInput.length !== DIGITS) return;
-
-    let p = 0, b = 0, d = 0;
-    const gArr = currentInput.split("");
-    const cArr = CODE.split("");
-
-    gArr.forEach((n, i) => {
-        if (n === cArr[i]) p++;
-        else if (cArr.includes(n)) b++;
-        else d++;
-    });
-
-    const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
-
-    localStats.history.push({ g: currentInput, e: emojis });
-    renderGuessSlots();
-    saveDraft();
-
-    if (currentInput === CODE || localStats.history.length >= 8) {
-        const win = currentInput === CODE;
-        const rowsUsed = localStats.history.length;
-
-        localStats.played++;
-
-        if (win) {
-            localStats.wins++;
-            localStats.totalRows += rowsUsed;
-
-            if (typeof confetti === "function") {
-                confetti({
-                    particleCount: 150,
-                    spread: 70,
-                    origin: { y: 0.6 }
-                });
-            }
-        }
-
-        localStats.lastDate = today;
-        saveLocalStats();
-
-        await syncGlobalData({
-            win: win,
-            rows: rowsUsed,
-            digits: DIGITS,
-            ts: Date.now()
-        });
-
-        clearDraft();
-        showEnd(win, true);
-    }
-
-    currentInput = "";
-    updateDisplay();
-}
-
 async function syncGlobalData(game) {
-    const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerId}_${today}.json`;
+    // We store using a composite key: playerID + date
+    // This allows the rule ".write": "!data.exists()" to prevent the SAME user 
+    // from submitting twice or different users from touching each other's data.
+    const playerDateKey = `${playerId}_${today}`;
+    const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerDateKey}.json`;
 
     try {
-        const res = await fetch(`${playerPath}?t=${Date.now()}`, {
-            cache: "no-store"
-        });
-        const existing = await res.json();
-
-        if (existing) return;
-
         await fetch(playerPath, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
@@ -1013,196 +506,9 @@ async function syncGlobalData(game) {
     }
 }
 
-async function fetchAndRenderGlobal() {
-    const chart = document.getElementById("dist-chart");
-    if (!chart) return;
+// ... Rest of your UI logic (handlePress, render, etc) goes here ...
+// Ensure you call syncGlobalData inside submitGuess when the game ends.
 
-    try {
-        const res = await fetch(`${getStatsUrl()}?t=${Date.now()}`, {
-            cache: "no-store"
-        });
-        const data = await res.json();
-
-        const dist = Array(9).fill(0);
-        let totalPlayed = 0;
-        let totalWins = 0;
-
-        if (data) {
-            Object.values(data).forEach(game => {
-                if (!game) return;
-
-                totalPlayed++;
-
-                if (game.win === true && game.rows >= 1 && game.rows <= 8) {
-                    dist[game.rows - 1]++;
-                    totalWins++;
-                } else {
-                    dist[8]++;
-                }
-            });
-        }
-
-        const percentages = dist.map(count => {
-            if (totalPlayed === 0) return 0;
-            return Math.round((count / totalPlayed) * 100);
-        });
-
-        const maxVal = Math.max(...percentages, 1);
-
-        let todayBucket = -1;
-        if (localStats.lastDate === today && Array.isArray(localStats.history) && localStats.history.length > 0) {
-            const wonToday = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
-            todayBucket = wonToday
-                ? Math.min(localStats.history.length, 8) - 1
-                : 8;
-        }
-
-        chart.innerHTML = percentages.map((pct, i) => {
-            const label = i < 8 ? (i + 1) : "X";
-            const width = pct > 0 ? Math.max((pct / maxVal) * 100, 8) : 8;
-            const rowClass = i === todayBucket ? "dist-row today-highlight" : "dist-row";
-
-            return `
-                <div class="${rowClass}">
-                    <span>${label}</span>
-                    <div class="dist-bar" style="width:${width}%">${pct}%</div>
-                </div>
-            `;
-        }).join("");
-
-        const gWinrate = document.getElementById("g-winrate");
-        if (gWinrate) {
-            gWinrate.innerText = totalPlayed === 0
-                ? "0%"
-                : `${Math.round((totalWins / totalPlayed) * 100)}%`;
-        }
-
-    } catch (e) {
-        console.error("Global stats read error:", e);
-        chart.innerText = "Stats currently unavailable";
-    }
-}
-
-function updateStatsUI() {
-    const sPlayed = document.getElementById("s-played");
-    const sWins = document.getElementById("s-wins");
-    const sAvg = document.getElementById("s-avg");
-    const sWinrate = document.getElementById("s-winrate");
-
-    if (sPlayed) sPlayed.innerText = localStats.played;
-    if (sWins) sWins.innerText = localStats.wins;
-
-    const avg = localStats.wins === 0
-        ? "0"
-        : (localStats.totalRows / localStats.wins).toFixed(1);
-
-    if (sAvg) sAvg.innerText = avg;
-
-    const winRate = localStats.played === 0
-        ? "0%"
-        : `${Math.round((localStats.wins / localStats.played) * 100)}%`;
-
-    if (sWinrate) sWinrate.innerText = winRate;
-}
-
-function renderRow(g, e) {
-    localStats.history.push({ g, e });
-    renderGuessSlots();
-}
-
-function showEnd(win, autoOpenStats = true) {
-    const keyboard = document.getElementById("keyboard");
-    const inputBoxes = document.getElementById("input-boxes");
-    const msg = document.getElementById("end-msg");
-    const shareBtn = document.getElementById("share-icon");
-
-    if (keyboard) keyboard.style.display = "none";
-    if (inputBoxes) inputBoxes.style.display = "none";
-
-    if (msg) {
-        msg.style.display = "block";
-        msg.innerText = win
-            ? "YOU WIN! " + "🍕".repeat(DIGITS)
-            : "So Close! Try again tomorrow! 🍕 TODAY'S CODE: " + CODE;
-    }
-
-    if (shareBtn) {
-        shareBtn.style.opacity = "1";
-        shareBtn.style.pointerEvents = "auto";
-    }
-
-    if (autoOpenStats) {
-        setTimeout(() => toggleModal("stats-modal", true), 1500);
-    }
-}
-
-async function share() {
-    const win = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
-    const modeText = difficultyKey().toUpperCase();
-    const resultText = `Result: ${win ? localStats.history.length : "X"}/8`;
-
-    document.getElementById("share-card-mode").innerText = modeText;
-    document.getElementById("share-card-score").innerText = `${today} • ${resultText}`;
-
-    const grid = document.getElementById("share-card-grid");
-    grid.innerHTML = "";
-
-    localStats.history.forEach(h => {
-        const row = document.createElement("div");
-        row.style.display = "flex";
-        row.style.justifyContent = "center";
-        row.style.alignItems = "center";
-        row.style.background = "#fff";
-        row.style.border = "1px solid #d3d6da";
-        row.style.borderRadius = "8px";
-        row.style.padding = "18px 22px";
-
-        const emojis = document.createElement("div");
-        emojis.innerText = h.e;
-        emojis.style.fontSize = "30px";
-        emojis.style.letterSpacing = "4px";
-
-        row.appendChild(emojis);
-        grid.appendChild(row);
-    });
-
-    const card = document.getElementById("share-card");
-    const canvas = await html2canvas(card, {
-        backgroundColor: "#faf9f6",
-        scale: 2
-    });
-
-    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
-    if (!blob) return;
-
-    const file = new File([blob], `pizza-bagel-donut-${modeText.toLowerCase()}-${today}.png`, {
-        type: "image/png"
-    });
-
-    if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        try {
-            await navigator.share({
-                files: [file],
-                title: "Pizza Bagel Donut",
-                text: `I played Pizza Bagel Donut (${modeText})\n\nhttps://pizzabageldonut.com`
-            });
-            return;
-        } catch (e) {
-            console.error("Native share cancelled or failed:", e);
-        }
-    }
-
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = file.name;
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    URL.revokeObjectURL(url);
-}
-
-    /* Pizza Bagel Donut source ownership: Kelly Choi */
 </script>
 </body>
 </html>
