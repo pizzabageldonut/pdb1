@@ -4,25 +4,47 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🍕</text></svg>">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
-    <title>Pizza Bagel Donut | The Daily Number Guessing Game</title>
-    <meta name="description" content="Play pizzabageldonut, the daily logic puzzle. Guess unique numbers in 8 tries using Pizza, Bagel, and Donut clues.">
-    <meta name="keywords" content="pizzabageldonut, pizza bagel donut game, daily puzzle, logic game">
+
+    <title>Pizza Bagel Donut Game | Daily Number Puzzle</title>
+    <meta name="description" content="Play Pizza Bagel Donut, a fun daily number puzzle game. Guess the hidden code in 8 tries using pizza, bagel, and donut clues.">
+    <meta name="keywords" content="pizza bagel donut, pizza bagel donut game, daily puzzle game, number guessing game, code puzzle, web puzzle game">
+    <meta name="author" content="Kelly Choi">
+    <meta name="robots" content="index, follow">
     <link rel="canonical" href="https://pizzabageldonut.com/">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Pizza Bagel Donut Game | Daily Number Puzzle">
+    <meta property="og:description" content="Guess the hidden code in 8 tries with pizza, bagel, and donut clues. Play the daily Pizza Bagel Donut puzzle.">
+    <meta property="og:url" content="https://pizzabageldonut.com/">
+    <meta property="og:site_name" content="Pizza Bagel Donut">
+    <meta property="og:image" content="https://pizzabageldonut.com/og-image.png">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Pizza Bagel Donut Game | Daily Number Puzzle">
+    <meta name="twitter:description" content="Play the daily Pizza Bagel Donut number puzzle and guess the hidden code in 8 tries.">
+    <meta name="twitter:image" content="https://pizzabageldonut.com/og-image.png">
+
+    <meta name="theme-color" content="#faf9f6">
 
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "SoftwareApplication",
+      "@type": "Game",
       "name": "Pizza Bagel Donut",
+      "url": "https://pizzabageldonut.com/",
+      "description": "A daily number puzzle game where players guess a hidden code in 8 tries using pizza, bagel, and donut clues.",
+      "applicationCategory": "Game",
       "operatingSystem": "Web",
-      "applicationCategory": "GameApplication"
+      "genre": ["Puzzle", "Number Game", "Daily Game"],
+      "author": {
+        "@type": "Person",
+        "name": "Kelly Choi"
+      }
     }
     </script>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
-    
     <style>
         :root {
             --pizzabg: #faf9f6;
@@ -31,6 +53,10 @@
             --border: #d3d6da;
             --key: #e3e3e1;
             --pizzabox: #e1b272;
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         body {
@@ -43,6 +69,14 @@
             height: 100svh;
             margin: 0;
             padding: 0;
+            overflow: hidden;
+        }
+
+        .seo-copy {
+            position: absolute;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
             overflow: hidden;
         }
 
@@ -105,37 +139,68 @@
             margin: 0 auto;
             overflow: hidden;
             position: relative;
+            min-height: 0;
         }
 
         #guess-log {
             flex: 1;
+            min-height: 0;
             overflow-y: auto;
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            padding: 10px 15px;
+            gap: 4px;
+            padding: 6px 12px 10px;
             align-items: center;
+            justify-content: flex-start;
+            scrollbar-width: thin;
         }
 
         .guess-row {
             display: grid;
             grid-template-columns: 1fr 1.2fr;
             align-items: center;
-            padding: 10px 15px;
+            padding: 5px 10px;
             background: #fff;
             border: 1px solid var(--border);
             border-radius: 4px;
             width: 100%;
             max-width: 300px;
-            box-sizing: border-box;
-            min-height: 52px;
+            min-height: 38px;
+            flex-shrink: 0;
         }
 
-        .guess-row.empty { opacity: 1; }
-        .guess-code { font-family: 'Courier New', monospace; font-size: 1.15rem; font-weight: 800; letter-spacing: 4px; }
-        .guess-code.placeholder, .guess-emojis.placeholder { color: #cfcfcf; }
-        .guess-emojis { display: flex; justify-content: flex-end; font-size: 1.05rem; flex-wrap: wrap; gap: 2px; }
-        .guess-row.winner { background-color: var(--pizzabox); border-color: #c99b5a; color: #fff; }
+        .guess-row.empty {
+            opacity: 1;
+        }
+
+        .guess-code {
+            font-family: 'Courier New', monospace;
+            font-size: 1rem;
+            font-weight: 800;
+            letter-spacing: 3px;
+            line-height: 1;
+        }
+
+        .guess-code.placeholder,
+        .guess-emojis.placeholder {
+            color: #cfcfcf;
+        }
+
+        .guess-emojis {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            font-size: 0.95rem;
+            flex-wrap: wrap;
+            gap: 1px;
+            line-height: 1;
+        }
+
+        .guess-row.winner {
+            background-color: var(--pizzabox);
+            border-color: #c99b5a;
+            color: #fff;
+        }
 
         .controls-area {
             background: var(--pizzabg);
@@ -153,7 +218,6 @@
             background: #fff;
             border-bottom: 1px solid var(--border);
             min-height: 62px;
-            box-sizing: border-box;
         }
 
         .digit-box {
@@ -171,48 +235,239 @@
             transition: all 0.2s ease;
         }
 
-        .digit-box.filled { background: #000; color: #fff; border-color: #000; }
-        .digit-box.error { color: var(--sauce); border-color: var(--sauce); }
+        .digit-box.filled {
+            background: #000;
+            color: #fff;
+            border-color: #000;
+        }
 
-        .keypad-area { padding: 5px; display: flex; flex-direction: column; gap: 5px; }
-        .key-row { display: flex; gap: 5px; width: 100%; }
+        .digit-box.error {
+            color: var(--sauce);
+            border-color: var(--sauce);
+        }
+
+        .keypad-area {
+            padding: 5px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .key-row {
+            display: flex;
+            gap: 5px;
+            width: 100%;
+        }
+
         .key {
-            flex: 1; height: 44px; background: var(--key); border-radius: 4px;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 1.1rem; cursor: pointer; user-select: none;
+            flex: 1;
+            height: 44px;
+            background: var(--key);
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.1rem;
+            cursor: pointer;
+            user-select: none;
             -webkit-tap-highlight-color: transparent;
         }
-        .key:active { background: #ccc; }
-        .key.action { background: #c5c5c3; font-size: 0.7rem; letter-spacing: 0.5px; flex: 2; }
 
-        .toolbar { display: flex; justify-content: space-around; align-items: center; padding: 10px 0; border-top: 1px solid var(--border); }
-        .tool-btn { font-size: 1.5rem; cursor: pointer; }
+        .key:active {
+            background: #ccc;
+        }
 
-        .site-link-wrap { text-align: center; padding: 8px 0 2px; background: var(--pizzabg); }
-        .site-link { font-size: 0.9rem; color: var(--sauce); text-decoration: none; font-weight: 700; }
-        .site-link:hover { text-decoration: underline; }
+        .key.action {
+            background: #c5c5c3;
+            font-size: 0.7rem;
+            letter-spacing: 0.5px;
+            flex: 2;
+        }
 
-        .modal { display: none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(255,255,255,0.98); padding: 20px; box-sizing: border-box; overflow-y: auto; }
-        .modal-content { max-width: 400px; margin: 0 auto; text-align: center; }
-        .rule-line { display: flex; align-items: center; gap: 15px; margin: 12px 0; font-size: 0.95rem; line-height: 1.4; text-align: left; }
+        .toolbar {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            padding: 10px 0;
+            border-top: 1px solid var(--border);
+        }
 
-        .dist-row { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; font-size: 0.8rem; font-weight: 700; }
-        .dist-row span { width: 16px; text-align: center; }
-        .dist-bar { background: #787c7e; color: white; padding: 2px 8px; border-radius: 2px; min-width: 25px; text-align: right; }
-        .dist-row.today-highlight span { color: #2e7d32; font-weight: 800; }
-        .dist-row.today-highlight .dist-bar { background: #2e7d32; }
+        .tool-btn {
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
 
-        .stats-section { margin-top: 10px; display: flex; flex-direction: column; gap: 12px; align-items: center; width: 100%; }
-        .stats-card { border-top: 1px solid #d3d6da; padding-top: 10px; width: 100%; }
-        .stats-title { font-size: 12px; font-weight: 700; margin-bottom: 6px; color: #1a1a1a; }
-        .stats-grid { display: grid; grid-template-columns: repeat(4, 70px); justify-content: center; gap: 12px; }
-        .stat-box { text-align: center; padding: 4px 0; }
-        .stat-value { font-size: 18px; font-weight: 700; }
-        .stat-label { font-size: 10px; color: #777; margin-top: 2px; }
-        .dist-chart { width: 100%; margin-top: 8px; }
+        .site-link-wrap {
+            text-align: center;
+            padding: 8px 0 2px;
+            background: var(--pizzabg);
+        }
+
+        .site-link {
+            font-size: 0.9rem;
+            color: var(--sauce);
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .site-link:hover,
+        .site-link:focus {
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.98);
+            padding: 20px;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .rule-line {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin: 12px 0;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            text-align: left;
+        }
+
+        .dist-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 6px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+
+        .dist-row span {
+            width: 16px;
+            text-align: center;
+        }
+
+        .dist-bar {
+            background: #787c7e;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 2px;
+            min-width: 25px;
+            text-align: right;
+        }
+
+        .dist-row.today-highlight span {
+            color: #2e7d32;
+            font-weight: 800;
+        }
+
+        .dist-row.today-highlight .dist-bar {
+            background: #2e7d32;
+        }
+
+        .stats-section {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+        }
+
+        .stats-card {
+            border-top: 1px solid #d3d6da;
+            padding-top: 10px;
+            width: 100%;
+        }
+
+        .stats-title {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 6px;
+            letter-spacing: .03em;
+            color: #1a1a1a;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 70px);
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .stats-grid-3 {
+            grid-template-columns: repeat(3, 70px);
+            justify-content: center;
+        }
+
+        .stat-box {
+            text-align: center;
+            padding: 4px 0;
+        }
+
+        .stat-value {
+            font-size: 18px;
+            font-weight: 700;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            color: #777;
+            margin-top: 2px;
+            letter-spacing: .04em;
+        }
+
+        .dist-chart {
+            width: 100%;
+            margin-top: 8px;
+        }
+
+        #stats-container {
+            width: 100%;
+        }
+
+        @media (max-width: 420px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 70px);
+            }
+
+            .guess-row {
+                max-width: 260px;
+                padding: 5px 9px;
+                min-height: 36px;
+            }
+
+            .guess-code {
+                font-size: 0.95rem;
+                letter-spacing: 2px;
+            }
+
+            .guess-emojis {
+                font-size: 0.9rem;
+            }
+        }
     </style>
 </head>
 <body>
+
+<div class="seo-copy">
+    <h1>Pizza Bagel Donut Game</h1>
+    <p>Pizza Bagel Donut is a daily number puzzle game where you guess a hidden code in 8 tries. Pizza means the right number in the right spot, bagel means the right number in the wrong spot, and donut means the number is not in the code.</p>
+</div>
 
 <header>
     <span class="logo-emoji-hero">🍕🥯🍩</span>
@@ -226,9 +481,12 @@
 
 <div id="game">
     <div id="guess-log"></div>
+
     <div class="controls-area">
         <div id="end-msg" style="display:none; text-align:center; padding:12px; font-weight:800; color:var(--sauce); background:#fff; border-bottom:1px solid var(--border);"></div>
+
         <div class="input-display-area" id="input-boxes"></div>
+
         <div class="keypad-area" id="keyboard">
             <div class="key-row">
                 <div class="key" onclick="handlePress('1')">1</div>
@@ -249,45 +507,116 @@
                 <div class="key action" style="background:var(--sauce); color:white;" onclick="handlePress('ENT')">ENTER</div>
             </div>
         </div>
+
         <div class="toolbar">
             <div class="tool-btn" onclick="toggleModal('info-modal', true)">❓</div>
             <div id="share-icon" class="tool-btn" style="opacity:0.2; pointer-events:none;" onclick="share()">📤</div>
             <div class="tool-btn" onclick="toggleModal('stats-modal', true)">📊</div>
         </div>
+
         <div class="site-link-wrap">
-            <a href="https://pizzabageldonut.com" target="_blank" class="site-link">pizzabageldonut.com</a>
+            <a href="https://pizzabageldonut.com" target="_blank" rel="noopener noreferrer" class="site-link">
+                pizzabageldonut.com
+            </a>
         </div>
     </div>
 </div>
 
 <div class="modal" id="info-modal" style="display:block;">
-    <div class="modal-content">
-        <p>🍕 🥯 🍩</p>
-        <h2>Welcome to Pizza Bagel Donut!</h2>
-        <p>Guess unique numbers in 8 tries.</p>
-        <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> Correct and in the right spot.</span></div>
-        <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> Correct, but in wrong spot.</span></div>
-        <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> Not in the puzzle.</span></div>
-        <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; cursor:pointer;">START</button>
+    <div class="modal-content" style="text-align:left;">
+        <p style="text-align:center; font-size:1.2rem; margin-bottom:10px;">🍕 🥯 🍩</p>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem; text-align:center; margin-bottom:5px;">Welcome to the Pizza Bagel Donut Game!</h2>
+        <p style="font-size:0.95rem; font-weight:700; margin:15px 0 5px 0; text-align:center;">How to Play</p>
+        <p style="font-size:0.85rem; color:#555; text-align:center; line-height:1.4;">
+            Guess unique numbers in <strong>8 tries</strong>. Easy uses 3 digits, Medium uses 4, and Hard uses 5.
+            After each guess, you will receive clues:
+        </p>
+
+        <div style="margin:15px 0; border-top:1px solid #eee; padding-top:10px;">
+            <div class="rule-line"><span>🍕</span> <span><strong>PIZZA:</strong> A number is correct and in the right spot.</span></div>
+            <div class="rule-line"><span>🥯</span> <span><strong>BAGEL:</strong> A number is correct, but in the wrong spot.</span></div>
+            <div class="rule-line"><span>🍩</span> <span><strong>DONUT:</strong> A number is not in the puzzle at all.</span></div>
+        </div>
+
+        <div style="background:#fff; border:1px solid var(--border); border-radius:6px; padding:14px; margin:14px 0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif; text-align:center;">
+            <p style="margin:0 0 10px 0; font-size:0.85rem; font-weight:800; color:var(--sauce);">
+                Example
+            </p>
+
+            <p style="font-size:0.85rem; font-weight:700; margin-bottom:8px;">
+                Answer: 507
+            </p>
+
+            <div style="
+                display:flex;
+                justify-content:center;
+                align-items:center;
+                gap:12px;
+                background:#fff;
+                border:1px solid var(--border);
+                border-radius:6px;
+                padding:10px 14px;
+                max-width:260px;
+                margin:0 auto 10px auto;
+            ">
+                <div style="font-size:0.75rem; color:#777; font-weight:700;">
+                    GUESS
+                </div>
+
+                <div style="font-size:1rem; font-weight:800; letter-spacing:4px;">
+                    0 6 7
+                </div>
+
+                <div style="font-size:1.1rem;">
+                    🍕 🥯 🍩
+                </div>
+            </div>
+
+            <p style="margin:0; font-size:0.8rem; color:#444; line-height:1.5;">
+                 <strong>7</strong> is correct and in the right spot → 🍕
+                <br> <strong>0</strong> is correct but in the wrong spot → 🥯
+                <br> <strong>6</strong> is not in the answer → 🍩
+            </p>
+        </div>
+
+        <button onclick="startGame()" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; cursor:pointer;">
+            Start
+        </button>
     </div>
 </div>
 
 <div class="modal" id="stats-modal">
     <div class="modal-content">
-        <h2 style="color:var(--sauce);">Statistics</h2>
+        <h2 style="color:var(--sauce); text-transform:uppercase; letter-spacing:1px; font-size:1.1rem;">Statistics</h2>
         <div id="stats-container"></div>
-        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; cursor:pointer;">CLOSE</button>
+        <button onclick="toggleModal('stats-modal', false)" style="width:100%; padding:16px; background:var(--text); color:white; border:none; border-radius:4px; font-weight:700; text-transform:uppercase; margin-top:20px; cursor:pointer;">
+            Close
+        </button>
     </div>
+</div>
+
+<div id="share-card" style="position:absolute; left:-9999px; top:0; width:1080px; background:#faf9f6; color:#1a1a1a; padding:60px; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;">
+    <div style="text-align:center;">
+        <div style="font-size:72px; letter-spacing:20px;">🍕🥯🍩</div>
+        <div style="margin-top:10px; font-size:34px; font-weight:900; letter-spacing:8px; color:#b22222;">PIZZA BAGEL DONUT</div>
+        <div id="share-card-mode" style="margin-top:20px; font-size:26px; font-weight:700;"></div>
+        <div id="share-card-score" style="margin-top:10px; font-size:28px;"></div>
+    </div>
+    <div id="share-card-grid" style="margin:50px auto 30px; max-width:560px; display:flex; flex-direction:column; gap:14px;"></div>
+    <div style="margin-top:40px; text-align:center; font-size:24px; color:#666;">pizzabageldonut.com</div>
 </div>
 
 <script>
 const now = new Date();
-const today = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-" + String(now.getDate()).padStart(2, "0");
+const today =
+    now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
 const FIREBASE_BASE = "https://pizzabageldonut-game-default-rtdb.firebaseio.com";
 
 let DIGITS = parseInt(localStorage.getItem("pbd_digits"), 10) || 3;
 let currentInput = "";
-let localStats;
 
 function difficultyKey() {
     if (DIGITS === 3) return "easy";
@@ -295,41 +624,127 @@ function difficultyKey() {
     return "hard";
 }
 
-function getStatsUrl() { return `${FIREBASE_BASE}/stats/${difficultyKey()}.json`; }
-
-function getPlayerId() {
-    let id = localStorage.getItem("pbd_player_id");
-    if (!id) {
-        id = 'p' + Math.random().toString(36).substr(2, 9) + Date.now();
-        localStorage.setItem("pbd_player_id", id);
-    }
-    return id;
+function getStatsUrl() {
+    return `${FIREBASE_BASE}/stats/${difficultyKey()}.json`;
 }
-const playerId = getPlayerId();
 
 function generateDailyCode() {
     const seedBase = today.split("-").reduce((a, b) => a + parseInt(b, 10), 0) + DIGITS * 31;
     let pool = [0,1,2,3,4,5,6,7,8,9];
     let res = "";
+
     for (let i = 0; i < DIGITS; i++) {
         const idx = (seedBase + (i * 17)) % pool.length;
         res += pool.splice(idx, 1);
     }
     return res;
 }
+
 let CODE = generateDailyCode();
 
+function safeGet(key) {
+    try {
+        return localStorage.getItem(key);
+    } catch (e) {
+        return null;
+    }
+}
+
+function safeSet(key, value) {
+    try {
+        localStorage.setItem(key, value);
+        return true;
+    } catch (e) {
+        return false;
+    }
+}
+
+function getStatsStorageKey() {
+    return `pbd_v24_${difficultyKey()}`;
+}
+
+function getDraftStorageKey() {
+    return `pbd_draft_${difficultyKey()}`;
+}
+
+let localStats;
+
 function loadLocalStats() {
-    const key = `pbd_v24_${difficultyKey()}`;
-    localStats = JSON.parse(localStorage.getItem(key)) || { played: 0, wins: 0, totalRows: 0, lastDate: "", history: [] };
+    try {
+        localStats = JSON.parse(safeGet(getStatsStorageKey())) || {
+            played: 0,
+            wins: 0,
+            totalRows: 0,
+            lastDate: "",
+            history: []
+        };
+    } catch (e) {
+        localStats = {
+            played: 0,
+            wins: 0,
+            totalRows: 0,
+            lastDate: "",
+            history: []
+        };
+    }
 }
 
 function saveLocalStats() {
-    localStorage.setItem(`pbd_v24_${difficultyKey()}`, JSON.stringify(localStats));
+    safeSet(getStatsStorageKey(), JSON.stringify(localStats));
 }
+
+function saveDraft() {
+    const draft = {
+        history: localStats.history || [],
+        currentInput: currentInput || ""
+    };
+    safeSet(getDraftStorageKey(), JSON.stringify(draft));
+}
+
+function loadDraft() {
+    try {
+        const raw = safeGet(getDraftStorageKey());
+        if (!raw) return { history: [], currentInput: "" };
+        const parsed = JSON.parse(raw);
+        return {
+            history: Array.isArray(parsed.history) ? parsed.history : [],
+            currentInput: typeof parsed.currentInput === "string" ? parsed.currentInput : ""
+        };
+    } catch (e) {
+        return { history: [], currentInput: "" };
+    }
+}
+
+function clearDraft() {
+    try {
+        localStorage.removeItem(getDraftStorageKey());
+    } catch (e) {}
+}
+
+loadLocalStats();
+
+function createPlayerId() {
+    if (window.crypto && typeof crypto.randomUUID === "function") {
+        return crypto.randomUUID();
+    }
+    return "pbd_" + Math.random().toString(36).slice(2) + "_" + Date.now();
+}
+
+function getPlayerId() {
+    const existing = safeGet("pbd_player");
+    if (existing) return existing;
+
+    const newId = createPlayerId();
+    safeSet("pbd_player", newId);
+    return safeGet("pbd_player") || newId;
+}
+
+const playerId = getPlayerId();
 
 function createInputBoxes() {
     const container = document.getElementById("input-boxes");
+    if (!container) return;
+
     container.innerHTML = "";
     for (let i = 0; i < DIGITS; i++) {
         const box = document.createElement("div");
@@ -341,117 +756,518 @@ function createInputBoxes() {
 
 function renderGuessSlots() {
     const log = document.getElementById("guess-log");
+    if (!log) return;
+
     log.innerHTML = "";
+
     for (let i = 0; i < 8; i++) {
         const entry = localStats.history[i];
+
         const row = document.createElement("div");
         row.className = "guess-row" + (entry ? "" : " empty") + (entry && entry.e === "🍕".repeat(DIGITS) ? " winner" : "");
-        row.innerHTML = `<div class="guess-code">${entry ? entry.g : " "}</div><div class="guess-emojis">${entry ? entry.e : " "}</div>`;
+
+        const codeClass = entry ? "guess-code" : "guess-code placeholder";
+        const emojiClass = entry ? "guess-emojis" : "guess-emojis placeholder";
+
+        row.innerHTML = `
+            <div class="${codeClass}">${entry ? entry.g : " "}</div>
+            <div class="${emojiClass}">${entry ? entry.e : " "}</div>
+        `;
+
         log.appendChild(row);
     }
+
+    log.scrollTop = log.scrollHeight;
+}
+
+function updateDifficultyButtons() {
+    document.querySelectorAll(".diff-btn").forEach(btn => btn.classList.remove("active"));
+
+    const easyBtn = document.getElementById("easy-btn");
+    const mediumBtn = document.getElementById("medium-btn");
+    const hardBtn = document.getElementById("hard-btn");
+
+    if (DIGITS === 3 && easyBtn) easyBtn.classList.add("active");
+    if (DIGITS === 4 && mediumBtn) mediumBtn.classList.add("active");
+    if (DIGITS === 5 && hardBtn) hardBtn.classList.add("active");
+}
+
+function setDifficulty(n) {
+    if (localStats.lastDate !== today) {
+        saveDraft();
+    }
+
+    DIGITS = n;
+    safeSet("pbd_digits", String(n));
+    CODE = generateDailyCode();
+    loadLocalStats();
+    updateDifficultyButtons();
+    createInputBoxes();
+
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
+
+    currentInput = "";
+
+    if (shareBtn) {
+        shareBtn.style.opacity = "0.2";
+        shareBtn.style.pointerEvents = "none";
+    }
+
+    const infoModal = document.getElementById("info-modal");
+    if (infoModal && infoModal.style.display !== "none") {
+        createInputBoxes();
+    }
+
+    if (localStats.lastDate === today) {
+        renderGuessSlots();
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
+        return;
+    }
+
+    const draft = loadDraft();
+    localStats.history = draft.history;
+    currentInput = draft.currentInput;
+
+    renderGuessSlots();
+    updateDisplay();
+
+    if (keyboard) keyboard.style.display = "";
+    if (inputBoxes) inputBoxes.style.display = "";
+    if (endMsg) {
+        endMsg.style.display = "none";
+        endMsg.innerText = "";
+    }
+}
+
+function ensureStatsElements() {
+    const container = document.getElementById("stats-container");
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="stats-section">
+            <div class="stats-card">
+                <div class="stats-title">Your Stats</div>
+                <div class="stats-grid">
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-played">0</div>
+                        <div class="stat-label">Played</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-wins">0</div>
+                        <div class="stat-label">Wins</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-winrate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="s-avg">0</div>
+                        <div class="stat-label">Avg Rows</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-card">
+                <div class="stats-title">Global Stats</div>
+                <div class="stats-grid" style="grid-template-columns: repeat(1, 90px);">
+                    <div class="stat-box">
+                        <div class="stat-value" id="g-winrate">0%</div>
+                        <div class="stat-label">Win Rate</div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="dist-chart" class="dist-chart"></div>
+        </div>
+    `;
+}
+
+window.onload = () => {
+    updateDifficultyButtons();
+    createInputBoxes();
+
+    if (localStats.lastDate === today) {
+        toggleModal("info-modal", false);
+        renderGuessSlots();
+        showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)), false);
+        return;
+    }
+
+    const draft = loadDraft();
+    localStats.history = draft.history;
+    currentInput = draft.currentInput;
+
+    renderGuessSlots();
+    updateDisplay();
+};
+
+async function toggleModal(id, show) {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = show ? "block" : "none";
+
+    if (id === "stats-modal" && show) {
+        ensureStatsElements();
+        updateStatsUI();
+        await fetchAndRenderGlobal();
+    }
+}
+
+function startGame() {
+    toggleModal("info-modal", false);
+
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+
+    createInputBoxes();
+    renderGuessSlots();
+
+    if (localStats.lastDate !== today) {
+        if (keyboard) keyboard.style.display = "";
+        if (inputBoxes) inputBoxes.style.display = "";
+        if (endMsg) endMsg.style.display = "none";
+    }
+}
+
+function resetBoard() {
+    currentInput = "";
+
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const endMsg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
+
+    if (keyboard) keyboard.style.display = "";
+    if (inputBoxes) inputBoxes.style.display = "";
+    if (endMsg) {
+        endMsg.style.display = "none";
+        endMsg.innerText = "";
+    }
+    if (shareBtn) {
+        shareBtn.style.opacity = "0.2";
+        shareBtn.style.pointerEvents = "none";
+    }
+
+    createInputBoxes();
+    renderGuessSlots();
+    updateDisplay();
+}
+
+function showInputError() {
+    const boxes = document.querySelectorAll(".digit-box");
+
+    boxes.forEach(box => {
+        box.style.borderColor = "#b22222";
+        box.style.background = "#ffeaea";
+    });
+
+    setTimeout(() => {
+        boxes.forEach(box => {
+            box.style.borderColor = "";
+            box.style.background = "";
+        });
+    }, 500);
 }
 
 function handlePress(val) {
     if (localStats.lastDate === today) return;
-    if (val === 'DEL') currentInput = currentInput.slice(0, -1);
-    else if (val === 'ENT') {
-        if (currentInput.length === DIGITS) submitGuess();
+
+    if (val === "DEL") {
+        currentInput = currentInput.slice(0, -1);
+    } else if (val === "ENT") {
+        if (currentInput.length !== DIGITS) {
+            showInputError();
+            return;
+        }
+
+        submitGuess();
+        return;
     } else if (currentInput.length < DIGITS && !currentInput.includes(val)) {
         currentInput += val;
     }
+
     updateDisplay();
 }
 
 function updateDisplay() {
     for (let i = 0; i < DIGITS; i++) {
         const box = document.getElementById("d" + i);
+        if (!box) continue;
         box.innerText = currentInput[i] || "";
         box.classList.toggle("filled", !!currentInput[i]);
     }
 }
 
 async function submitGuess() {
+    if (currentInput.length !== DIGITS) return;
+
     let p = 0, b = 0, d = 0;
     const gArr = currentInput.split("");
     const cArr = CODE.split("");
+
     gArr.forEach((n, i) => {
         if (n === cArr[i]) p++;
         else if (cArr.includes(n)) b++;
         else d++;
     });
+
     const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
+
     localStats.history.push({ g: currentInput, e: emojis });
     renderGuessSlots();
+    saveDraft();
 
     if (currentInput === CODE || localStats.history.length >= 8) {
         const win = currentInput === CODE;
+        const rowsUsed = localStats.history.length;
+
         localStats.played++;
+
         if (win) {
             localStats.wins++;
-            localStats.totalRows += localStats.history.length;
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            localStats.totalRows += rowsUsed;
+
+            if (typeof confetti === "function") {
+                confetti({
+                    particleCount: 150,
+                    spread: 70,
+                    origin: { y: 0.6 }
+                });
+            }
         }
+
         localStats.lastDate = today;
         saveLocalStats();
-        await syncGlobalData({ win, rows: localStats.history.length, digits: DIGITS, ts: Date.now() });
-        showEnd(win);
+
+        await syncGlobalData({
+            win: win,
+            rows: rowsUsed,
+            digits: DIGITS,
+            ts: Date.now()
+        });
+
+        clearDraft();
+        showEnd(win, true);
     }
+
     currentInput = "";
+    updateDisplay();
 }
 
 async function syncGlobalData(game) {
     const playerPath = `${FIREBASE_BASE}/stats/${difficultyKey()}/${playerId}_${today}.json`;
+
     try {
-        await fetch(playerPath, { method: "PUT", body: JSON.stringify(game) });
-    } catch (e) { console.error(e); }
+        const res = await fetch(`${playerPath}?t=${Date.now()}`, {
+            cache: "no-store"
+        });
+        const existing = await res.json();
+
+        if (existing) return;
+
+        await fetch(playerPath, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(game)
+        });
+    } catch (e) {
+        console.error("Global stats write error:", e);
+    }
 }
 
-function showEnd(win) {
-    const msg = document.getElementById("end-msg");
-    msg.style.display = "block";
-    msg.innerText = win ? "CONGRATS! SEE YOU TOMORROW." : `GAME OVER. CODE WAS ${CODE}`;
-    document.getElementById("keyboard").style.display = "none";
-    document.getElementById("input-boxes").style.display = "none";
-    document.getElementById("share-icon").style.opacity = "1";
-    document.getElementById("share-icon").style.pointerEvents = "auto";
-}
+async function fetchAndRenderGlobal() {
+    const chart = document.getElementById("dist-chart");
+    if (!chart) return;
 
-function setDifficulty(n) {
-    DIGITS = n;
-    localStorage.setItem("pbd_digits", n);
-    CODE = generateDailyCode();
-    loadLocalStats();
-    createInputBoxes();
-    renderGuessSlots();
-    document.querySelectorAll(".diff-btn").forEach(b => b.classList.remove("active"));
-    if (n === 3) document.getElementById("easy-btn").classList.add("active");
-    if (n === 4) document.getElementById("medium-btn").classList.add("active");
-    if (n === 5) document.getElementById("hard-btn").classList.add("active");
-    if (localStats.lastDate === today) showEnd(localStats.history.some(h => h.e === "🍕".repeat(DIGITS)));
-}
+    try {
+        const res = await fetch(`${getStatsUrl()}?t=${Date.now()}`, {
+            cache: "no-store"
+        });
+        const data = await res.json();
 
-function toggleModal(id, show) {
-    document.getElementById(id).style.display = show ? "block" : "none";
-    if (id === 'stats-modal' && show) updateStatsUI();
+        const dist = Array(9).fill(0);
+        let totalPlayed = 0;
+        let totalWins = 0;
+
+        if (data) {
+            Object.values(data).forEach(game => {
+                if (!game) return;
+
+                totalPlayed++;
+
+                if (game.win === true && game.rows >= 1 && game.rows <= 8) {
+                    dist[game.rows - 1]++;
+                    totalWins++;
+                } else {
+                    dist[8]++;
+                }
+            });
+        }
+
+        const percentages = dist.map(count => {
+            if (totalPlayed === 0) return 0;
+            return Math.round((count / totalPlayed) * 100);
+        });
+
+        const maxVal = Math.max(...percentages, 1);
+
+        let todayBucket = -1;
+        if (localStats.lastDate === today && Array.isArray(localStats.history) && localStats.history.length > 0) {
+            const wonToday = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
+            todayBucket = wonToday
+                ? Math.min(localStats.history.length, 8) - 1
+                : 8;
+        }
+
+        chart.innerHTML = percentages.map((pct, i) => {
+            const label = i < 8 ? (i + 1) : "X";
+            const width = pct > 0 ? Math.max((pct / maxVal) * 100, 8) : 8;
+            const rowClass = i === todayBucket ? "dist-row today-highlight" : "dist-row";
+
+            return `
+                <div class="${rowClass}">
+                    <span>${label}</span>
+                    <div class="dist-bar" style="width:${width}%">${pct}%</div>
+                </div>
+            `;
+        }).join("");
+
+        const gWinrate = document.getElementById("g-winrate");
+        if (gWinrate) {
+            gWinrate.innerText = totalPlayed === 0
+                ? "0%"
+                : `${Math.round((totalWins / totalPlayed) * 100)}%`;
+        }
+
+    } catch (e) {
+        console.error("Global stats read error:", e);
+        chart.innerText = "Stats currently unavailable";
+    }
 }
 
 function updateStatsUI() {
-    const container = document.getElementById("stats-container");
-    const wr = localStats.played ? Math.round((localStats.wins / localStats.played) * 100) : 0;
-    container.innerHTML = `
-        <div class="stats-grid">
-            <div class="stat-box"><div class="stat-value">${localStats.played}</div><div class="stat-label">Played</div></div>
-            <div class="stat-box"><div class="stat-value">${wr}%</div><div class="stat-label">Win %</div></div>
-        </div>
-    `;
+    const sPlayed = document.getElementById("s-played");
+    const sWins = document.getElementById("s-wins");
+    const sAvg = document.getElementById("s-avg");
+    const sWinrate = document.getElementById("s-winrate");
+
+    if (sPlayed) sPlayed.innerText = localStats.played;
+    if (sWins) sWins.innerText = localStats.wins;
+
+    const avg = localStats.wins === 0
+        ? "0"
+        : (localStats.totalRows / localStats.wins).toFixed(1);
+
+    if (sAvg) sAvg.innerText = avg;
+
+    const winRate = localStats.played === 0
+        ? "0%"
+        : `${Math.round((localStats.wins / localStats.played) * 100)}%`;
+
+    if (sWinrate) sWinrate.innerText = winRate;
 }
 
-function startGame() { toggleModal('info-modal', false); }
+function renderRow(g, e) {
+    localStats.history.push({ g, e });
+    renderGuessSlots();
+}
 
-window.onload = () => {
-    loadLocalStats();
-    setDifficulty(DIGITS);
-};
+function showEnd(win, autoOpenStats = true) {
+    const keyboard = document.getElementById("keyboard");
+    const inputBoxes = document.getElementById("input-boxes");
+    const msg = document.getElementById("end-msg");
+    const shareBtn = document.getElementById("share-icon");
+
+    if (keyboard) keyboard.style.display = "none";
+    if (inputBoxes) inputBoxes.style.display = "none";
+
+    if (msg) {
+        msg.style.display = "block";
+        msg.innerText = win
+            ? "YOU WIN! " + "🍕".repeat(DIGITS)
+            : "So Close! Try again tomorrow! 🍕 TODAY'S CODE: " + CODE;
+    }
+
+    if (shareBtn) {
+        shareBtn.style.opacity = "1";
+        shareBtn.style.pointerEvents = "auto";
+    }
+
+    if (autoOpenStats) {
+        setTimeout(() => toggleModal("stats-modal", true), 1500);
+    }
+}
+
+async function share() {
+    const win = localStats.history.some(h => h.e === "🍕".repeat(DIGITS));
+    const modeText = difficultyKey().toUpperCase();
+    const resultText = `Result: ${win ? localStats.history.length : "X"}/8`;
+
+    document.getElementById("share-card-mode").innerText = modeText;
+    document.getElementById("share-card-score").innerText = `${today} • ${resultText}`;
+
+    const grid = document.getElementById("share-card-grid");
+    grid.innerHTML = "";
+
+    localStats.history.forEach(h => {
+        const row = document.createElement("div");
+        row.style.display = "flex";
+        row.style.justifyContent = "center";
+        row.style.alignItems = "center";
+        row.style.background = "#fff";
+        row.style.border = "1px solid #d3d6da";
+        row.style.borderRadius = "8px";
+        row.style.padding = "18px 22px";
+
+        const emojis = document.createElement("div");
+        emojis.innerText = h.e;
+        emojis.style.fontSize = "30px";
+        emojis.style.letterSpacing = "4px";
+
+        row.appendChild(emojis);
+        grid.appendChild(row);
+    });
+
+    const card = document.getElementById("share-card");
+    const canvas = await html2canvas(card, {
+        backgroundColor: "#faf9f6",
+        scale: 2
+    });
+
+    const blob = await new Promise(resolve => canvas.toBlob(resolve, "image/png"));
+    if (!blob) return;
+
+    const file = new File([blob], `pizza-bagel-donut-${modeText.toLowerCase()}-${today}.png`, {
+        type: "image/png"
+    });
+
+    if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+            await navigator.share({
+                files: [file],
+                title: "Pizza Bagel Donut",
+                text: `I played Pizza Bagel Donut (${modeText})\n\nhttps://pizzabageldonut.com`
+            });
+            return;
+        } catch (e) {
+            console.error("Native share cancelled or failed:", e);
+        }
+    }
+
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = file.name;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+/* Pizza Bagel Donut source ownership: Kelly Choi */
 </script>
 </body>
 </html>
