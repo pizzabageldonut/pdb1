@@ -1008,11 +1008,33 @@ async function submitGuess() {
     const gArr = currentInput.split("");
     const cArr = CODE.split("");
 
-    gArr.forEach((n, i) => {
-        if (n === cArr[i]) p++;
-        else if (cArr.includes(n)) b++;
-        else d++;
-    });
+    const usedCode = Array(DIGITS).fill(false);
+    const usedGuess = Array(DIGITS).fill(false);
+
+    // PASS 1: exact matches (🍕)
+    for (let i = 0; i < DIGITS; i++) {
+        if (gArr[i] === cArr[i]) {
+            p++;
+            usedCode[i] = true;
+            usedGuess[i] = true;
+        }
+    }
+
+    // PASS 2: wrong-position matches (🥯)
+    for (let i = 0; i < DIGITS; i++) {
+        if (usedGuess[i]) continue;
+
+        for (let j = 0; j < DIGITS; j++) {
+            if (!usedCode[j] && gArr[i] === cArr[j]) {
+                b++;
+                usedCode[j] = true;
+                break;
+            }
+        }
+    }
+
+    // Remaining are donuts (🍩)
+    d = DIGITS - p - b;
 
     const emojis = "🍕".repeat(p) + "🥯".repeat(b) + "🍩".repeat(d);
 
