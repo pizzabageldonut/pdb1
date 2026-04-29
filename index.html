@@ -704,6 +704,7 @@ function saveLocalStats() {
 
 function saveDraft() {
     const draft = {
+        date: today,
         history: localStats.history || [],
         currentInput: currentInput || ""
     };
@@ -715,6 +716,13 @@ function loadDraft() {
         const raw = safeGet(getDraftStorageKey());
         if (!raw) return { history: [], currentInput: "" };
         const parsed = JSON.parse(raw);
+
+        // Clear unfinished guesses from a previous day when the daily puzzle resets.
+        if (parsed.date !== today) {
+            clearDraft();
+            return { history: [], currentInput: "" };
+        }
+
         return {
             history: Array.isArray(parsed.history) ? parsed.history : [],
             currentInput: typeof parsed.currentInput === "string" ? parsed.currentInput : ""
@@ -999,6 +1007,7 @@ function handlePress(val) {
     }
 
     updateDisplay();
+    saveDraft();
 }
 
 function updateDisplay() {
